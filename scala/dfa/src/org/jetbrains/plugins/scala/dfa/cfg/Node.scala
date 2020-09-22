@@ -31,6 +31,11 @@ trait Constant extends Value {
   def constant: DfAny
 }
 
+trait Argument extends Value {
+  def argumentName: String
+  def argumentIndex: Int
+}
+
 trait PhiValue extends Value {
 
 }

@@ -8,6 +8,7 @@ trait Builder[SourceInfo] {
   type UnlinkedJump
   type LoopLabel
 
+  def addArgument(name: String, anchor: AnyRef): Variable
   def constant(const: DfAny): Value
 
   def readVariable(variable: Variable): Value
@@ -27,14 +28,15 @@ trait Builder[SourceInfo] {
   def jumpBack(loop: LoopLabel): Unit
 
   def withSourceInfo[R](sourceInfo: SourceInfo)(body: => R): R
-  def freshVariable(): Variable
+  def freshVariable(prefix: String = "fresh"): Variable
+  def newVariable(name: String, anchor: AnyRef): Variable
 
   def finish(): Graph[SourceInfo]
 }
 
 object Builder {
-  case class Variable(anchor: Any)(override val toString: String)
-  case class Property(anchor: Any)(override val toString: String)
+  case class Variable(anchor: AnyRef)(override val toString: String)
+  case class Property(anchor: AnyRef)(override val toString: String)
 
   def newBuilder[Info](): Builder[Info] =
     new impl.BuilderImpl

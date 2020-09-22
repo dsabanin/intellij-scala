@@ -19,7 +19,6 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
 
   private class Scope(val block: Block, var variables: Map[Variable, Value])
 
-  private var nextValueId = 0
   private var curSourceInfo = Option.empty[SourceInfo]
   private val nodesBuilder = BuilderWithSize.newBuilder[NodeImpl](ArraySeq)
   private val blocksBuilder = BuilderWithSize.newBuilder[Block](ArraySeq)
@@ -83,6 +82,7 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   private def closeBlockIfNeeded(): Option[Scope] =
     curMaybeBlock.map { _ => closeBlock() }
 
+  private var nextValueId = 0
   private def newValueId(): Int = {
     val next = nextValueId
     nextValueId += 1
@@ -102,6 +102,20 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
 
     nodesBuilder += node
     node
+  }
+
+  private val argumentsBuilder = BuilderWithSize.newBuilder[Argument](ArraySeq)
+  override def addArgument(name: String, anchor: AnyRef): Variable = {
+    val argumentsAdded = argumentsBuilder.elementsAdded
+    assert(argumentsAdded == nodesBuilder.elementsAdded, "Cannot add arguments after having added other nodes")
+
+    val variable = newVariable(name, anchor)
+    val argNode = addNode(new ArgumentImpl(name))
+    assert(argNode.valueId == argumentsAdded)
+    writeVariable(variable, argNode)
+    argumentsBuilder += argNode
+
+    variable
   }
 
   override def constant(const: DfAny): Value =
@@ -167,9 +181,17 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   }
 
   private var nextFreshVarId = 0
-  override def freshVariable(): Variable =
-    try Variable(new AnyRef)("freshVar#" + nextFreshVarId)
+  override def freshVariable(prefix: String): Variable =
+    try Variable(new AnyRef)(prefix + "#" + nextFreshVarId)
     finally nextFreshVarId += 1
+
+  private val variableAnchors = mutable.Set.empty[AnyRef]
+  override def newVariable(name: String, anchor: AnyRef): Variable = {
+    assert(!variableAnchors.contains(anchor))
+    variableAnchors += anchor
+
+    Variable(anchor)(name)
+  }
 
   /***** Create Graph *****/
   override def finish(): Graph[SourceInfo] = {
@@ -180,7 +202,8 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
 
     val nodes = nodesBuilder.result()
     val blocks = blocksBuilder.result()
-    val graph = new Graph[SourceInfo](nodes, blocks)
+    val arguments = argumentsBuilder.result()
+    val graph = new Graph[SourceInfo](nodes, blocks, arguments)
     blocks.foreach(_._graph = graph)
 
     {

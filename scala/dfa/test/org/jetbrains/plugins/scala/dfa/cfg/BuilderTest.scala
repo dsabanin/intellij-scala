@@ -83,4 +83,28 @@ class BuilderTest extends AnyFunSuite with Matchers with BuilderMatchers {
         |""".stripMargin
     )
   }
+
+  test("arguments") {
+    val builder = newBuilder
+
+    builder.addArgument("arg1", new AnyRef)
+    builder.addArgument("arg2", new AnyRef)
+
+    builder.finish() should disassembleTo(
+      """
+        |  %0 <- arg1 [argument 0]
+        |  %1 <- arg2 [argument 1]
+        |  end
+        |""".stripMargin
+    )
+  }
+
+  test("arguments cannot be added after other nodes") {
+    val builder = newBuilder
+
+    builder.constant(DfInt.Concrete(3))
+
+    an [AssertionError] should be thrownBy
+      builder.addArgument("blub", new AnyRef)
+  }
 }
