@@ -4,8 +4,8 @@ package cfg
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-class BuilderTest extends AnyFunSuite with Matchers with BuilderMatchers {
-  def newBuilder: Builder[Unit] = Builder.newBuilder()
+class BuilderSpec extends AnyFunSuite with Matchers with BuilderMatchers {
+  def newBuilder: Builder[Nothing] = Builder.newBuilder()
 
   test("single const") {
     val builder = newBuilder

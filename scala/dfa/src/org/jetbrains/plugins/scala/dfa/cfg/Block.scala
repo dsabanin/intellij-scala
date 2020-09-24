@@ -16,6 +16,9 @@ trait Block {
   def nodes: SeqView[Node]
   def nodeIndices: Range
 
+  def incoming: Seq[Block]
+  def outgoing: Seq[Block]
+
   final def headNode: Option[Node] = nodes.headOption
   final def lastNode: Option[Node] = nodes.lastOption
 }

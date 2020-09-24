@@ -22,6 +22,7 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   private var curSourceInfo = Option.empty[SourceInfo]
   private val nodesBuilder = BuilderWithSize.newBuilder[NodeImpl](ArraySeq)
   private val blocksBuilder = BuilderWithSize.newBuilder[Block](ArraySeq)
+  private val blockOutgoings = mutable.Map.empty[Block, mutable.Builder[Block, ArraySeq[Block]]]
 
 
   // Normally there should be scope whenever there is a block and vice versa.
@@ -41,8 +42,18 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   private def startBlock(name: String, incomingScopes: Seq[Scope]): Unit = {
     assert(curMaybeBlock.isEmpty)
     assert(curMaybeScope.isEmpty)
-    val block = new Block(name, index = blocksBuilder.elementsAdded, nodeBegin = nodesBuilder.elementsAdded)
+    val block = new Block(
+      name,
+      index = blocksBuilder.elementsAdded,
+      nodeBegin = nodesBuilder.elementsAdded,
+      incoming = incomingScopes.iterator.map(_.block).to(ArraySeq)
+    )
     curMaybeBlock = Some(block)
+
+    for (from <- incomingScopes) {
+      val builder = blockOutgoings.getOrElseUpdate(from.block, ArraySeq.newBuilder)
+      builder += block
+    }
 
     // build scope
     val newVariables = unifyVariables(incomingScopes)
@@ -205,6 +216,12 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
     val arguments = argumentsBuilder.result()
     val graph = new Graph[SourceInfo](nodes, blocks, arguments)
     blocks.foreach(_._graph = graph)
+
+    // build outgoings for blocks
+    for ((from, toBuilder) <- blockOutgoings) {
+      from._outgoing = toBuilder.result()
+    }
+
 
     {
       // check if blocks have correct boundaries
