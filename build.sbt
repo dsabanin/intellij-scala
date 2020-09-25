@@ -26,7 +26,6 @@ lazy val scalaCommunity: sbt.Project =
     .dependsOn(
       bsp % "test->test;compile->compile",
       codeInsight % "test->test;compile->compile",
-      dfa % "test->test;compile->compile",
       conversion % "test->test;compile->compile",
       uast % "test->test;compile->compile",
       worksheet % "test->test;compile->compile",
@@ -141,6 +140,7 @@ lazy val scalaImpl: sbt.Project =
       compilerShared,
       worksheetReplReporters,
       scalaApi,
+      dfa,
       macroAnnotations,
       decompiler % "test->test;compile->compile",
       runners % "test->test;compile->compile",
