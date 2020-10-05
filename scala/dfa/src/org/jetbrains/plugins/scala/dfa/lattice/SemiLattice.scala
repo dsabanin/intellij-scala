@@ -19,6 +19,7 @@ trait SemiLattice[-L] {
 }
 
 trait SemiLatticeOps {
+  @inline
   implicit final def semiLatticeExt[L](element: L): SemiLatticeExt[L] =
     new SemiLatticeExt(element)
 }

@@ -30,6 +30,7 @@ trait JoinSemiLattice[L] extends SemiLattice[L] with HasTop[L] {
 }
 
 trait JoinSemiLatticeOps {
+  @inline
   implicit final def joinSemiLatticeExt[L](element: L): JoinSemiLatticeExt[L] =
     new JoinSemiLatticeExt(element)
 

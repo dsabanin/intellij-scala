@@ -30,6 +30,7 @@ trait MeetSemiLattice[L] extends SemiLattice[L] with HasBottom[L] {
 }
 
 trait MeetSemiLatticeOps {
+  @inline
   implicit final def meetSemiLatticeExt[L](element: L): MeetSemiLatticeExt[L] =
     new MeetSemiLatticeExt(element)
 
