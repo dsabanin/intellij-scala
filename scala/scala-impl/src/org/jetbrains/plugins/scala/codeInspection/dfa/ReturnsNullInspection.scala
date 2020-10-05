@@ -18,7 +18,7 @@ class ReturnsNullInspection extends LocalInspectionTool {
       } checkReturn(expr, result)
 
     private def checkReturn(expr: ScExpression, result: DfaResult[PsiElement]): Unit = {
-      if (result.valuesOf(expr).exists(_.canLikelyBeNull)) {
+      if (result.valueOf(expr).canLikelyBeNull) {
         holder.registerProblem(expr, ScalaInspectionBundle.message("this.might.return.null.consider.adding.nullable"))
       }
     }

@@ -8,7 +8,7 @@ import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScFun, ScParameterOw
 import org.jetbrains.plugins.scala.lang.resolve.ScalaResolveResult
 
 private trait ExpressionTransformer { this: Transformer =>
-  final def transformExpression(expr: ScExpression): builder.Value = builder.withSourceInfo(expr) {
+  final def transformExpression(expr: ScExpression): builder.Value = attachSourceInfo(expr) {
     expr match {
         // **************** Literals **************** //
       case ScBooleanLiteral(bool) => builder.constant(DfBool(bool))
@@ -54,7 +54,7 @@ private trait ExpressionTransformer { this: Transformer =>
     }
   }
 
-  final def transformReference(reference: ScReferenceExpression): builder.Value = builder.withSourceInfo(reference) {
+  final def transformReference(reference: ScReferenceExpression): builder.Value = attachSourceInfo(reference) {
     reference.bind() match {
       case Some(result) if reference.refName != result.name && (result.name == "apply" || result.name == "update") =>
         builder.readVariable(variable(result.parentElement.get))

@@ -8,7 +8,7 @@ trait Builder[SourceInfo] {
   type UnlinkedJump
   type LoopLabel
 
-  def addArgument(name: String, anchor: AnyRef): Variable
+  def addArgument(name: String, anchor: AnyRef): (Variable, Value)
   def constant(const: DfAny): Value
 
   def readVariable(variable: Variable): Value
@@ -27,7 +27,7 @@ trait Builder[SourceInfo] {
   def loopJumpHere(): LoopLabel
   def jumpBack(loop: LoopLabel): Unit
 
-  def withSourceInfo[R](sourceInfo: SourceInfo)(body: => R): R
+  def addSourceInfo(value: Value, sourceInfo: SourceInfo): Unit
   def freshVariable(prefix: String = "fresh"): Variable
   def newVariable(name: String, anchor: AnyRef): Variable
 

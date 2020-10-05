@@ -13,14 +13,14 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   override type UnlinkedJump = UnlinkedJumpImpl
   override type LoopLabel = LoopLabelImpl
 
-  private type NodeImpl = impl.NodeImpl[SourceInfo] with Node
-  private type JumpingImpl = impl.JumpingImpl[SourceInfo] with Jumping
-  private type ArgumentImpl = impl.ArgumentImpl[SourceInfo]
-  private type Block = impl.BlockImpl[SourceInfo]
+  private type NodeImpl = impl.NodeImpl with Node
+  private type JumpingImpl = impl.JumpingImpl with Jumping
+  private type ArgumentImpl = impl.ArgumentImpl
+  private type Block = impl.BlockImpl
 
   private class Scope(val block: Block, var variables: Map[Variable, Value])
 
-  private var curSourceInfo = Option.empty[SourceInfo]
+  private val sourceMappingBuilder = Map.newBuilder[SourceInfo, Value]
   private val nodesBuilder = BuilderWithSize.newBuilder[NodeImpl](ArraySeq)
   private val blocksBuilder = BuilderWithSize.newBuilder[Block](ArraySeq)
   private val blockOutgoings = mutable.Map.empty[Block, mutable.Builder[Block, ArraySeq[Block]]]
@@ -103,11 +103,10 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
 
   private def addNode(node: NodeImpl): node.type = {
     node._index = nodesBuilder.elementsAdded
-    node._sourceInfo = curSourceInfo
     node._block = currentBlock
 
     node match {
-      case value: ValueImpl[SourceInfo] =>
+      case value: ValueImpl =>
         value._valueId = newValueId()
       case _ =>
     }
@@ -117,7 +116,7 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   }
 
   private val argumentsBuilder = BuilderWithSize.newBuilder[ArgumentImpl](ArraySeq)
-  override def addArgument(name: String, anchor: AnyRef): Variable = {
+  override def addArgument(name: String, anchor: AnyRef): (Variable, Value) = {
     val argumentsAdded = argumentsBuilder.elementsAdded
     assert(argumentsAdded == nodesBuilder.elementsAdded, "Cannot add arguments after having added other nodes")
 
@@ -127,7 +126,7 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
     writeVariable(variable, argNode)
     argumentsBuilder += argNode
 
-    variable
+    (variable, argNode)
   }
 
   override def constant(const: DfAny): Value =
@@ -185,12 +184,8 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   }
 
   /***** Additional stuff *****/
-  override def withSourceInfo[R](sourceInfo: SourceInfo)(body: => R): R = {
-    val old = curSourceInfo
-    curSourceInfo = Some(sourceInfo)
-    try body
-    finally curSourceInfo = old
-  }
+  override def addSourceInfo(value: Value, sourceInfo: SourceInfo): Unit =
+    sourceMappingBuilder += sourceInfo -> value
 
   private var nextFreshVarId = 0
   override def freshVariable(prefix: String): Variable =
@@ -215,7 +210,8 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
     val nodes = nodesBuilder.result()
     val blocks = blocksBuilder.result()
     val arguments = argumentsBuilder.result()
-    val graph = new Graph[SourceInfo](nodes, blocks, arguments)
+    val valueForSource = sourceMappingBuilder.result()
+    val graph = new Graph[SourceInfo](nodes, blocks, arguments, valueForSource)
     blocks.foreach(_._graph = graph)
 
     // build outgoings for blocks

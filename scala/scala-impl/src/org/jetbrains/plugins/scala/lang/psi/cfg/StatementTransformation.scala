@@ -12,7 +12,7 @@ private trait StatementTransformation { this: Transformer =>
     }.getOrElse(builder.constant(DfUnit.Concrete))
   }
 
-  final def transformStatement(stmt: ScBlockStatement): Option[builder.Value] = builder.withSourceInfo(stmt) {
+  final def transformStatement(stmt: ScBlockStatement): Option[builder.Value] = attachSourceInfoIfSome(stmt) {
     stmt match {
       case expression: ScExpression => Some(transformExpression(expression))
       case function: ScFunction =>

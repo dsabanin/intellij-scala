@@ -4,10 +4,9 @@ package cfg
 import scala.collection.SeqView
 
 trait Block {
-  type SourceInfo
-  type Node = cfg.Node { type SourceInfo = Block.this.SourceInfo }
+  type Node = cfg.Node
 
-  def graph: Graph[SourceInfo]
+  def graph: Graph[_]
 
   def name: String
   def index: Int

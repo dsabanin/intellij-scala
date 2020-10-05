@@ -11,13 +11,11 @@ class DataFlowAnalysisSpec extends AnyFunSuite with Matchers {
     val argSource = new AnyRef
     val constSource = new AnyRef
 
-    builder.withSourceInfo(argSource) {
-      builder.addArgument("arg", new AnyRef)
-    }
+    val (_, argValue) = builder.addArgument("arg", new AnyRef)
+    builder.addSourceInfo(argValue, argSource)
 
-    builder.withSourceInfo(constSource) {
-      builder.constant(DfInt(10))
-    }
+    val constValue = builder.constant(DfInt(10))
+    builder.addSourceInfo(constValue, constSource)
 
     val graph = builder.finish()
     (

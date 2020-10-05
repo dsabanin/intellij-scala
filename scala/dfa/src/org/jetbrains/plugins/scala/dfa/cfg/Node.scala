@@ -2,12 +2,10 @@ package org.jetbrains.plugins.scala.dfa
 package cfg
 
 sealed trait Node {
-  type SourceInfo
-  type Block = cfg.Block { type SourceInfo = Node.this.SourceInfo }
+  type Block = cfg.Block
 
-  def graph: Graph[SourceInfo]
+  def graph: Graph[_]
   def block: Block
-  def sourceInfo: Option[SourceInfo]
   def index: Int
 
   def asmString(showIndex: Boolean = false, showLabel: Boolean = false, indent: Boolean = false, maxIndexHint: Int = 99): String
@@ -16,7 +14,7 @@ sealed trait Node {
 
 sealed trait Jumping extends Node {
   def targetIndex: Int
-  final def target: Node { type SourceInfo = Jumping.this.SourceInfo } = graph(targetIndex)
+  final def target: Node = graph(targetIndex)
   final def targetLabel: String = target.labelString
 }
 
