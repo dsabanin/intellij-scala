@@ -78,6 +78,9 @@ final class DataFlowAnalysis[Info](val graph: cfg.Graph[Info]) {
 
     join(valuesFromAllStates)
   }
+
+  def result: DfaResult[Info] =
+    DfaResult(graph, graph.values.map(inspect))
 }
 
 object DataFlowAnalysis {
