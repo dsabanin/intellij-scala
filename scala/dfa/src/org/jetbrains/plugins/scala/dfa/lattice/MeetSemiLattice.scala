@@ -1,9 +1,10 @@
 package org.jetbrains.plugins.scala.dfa.lattice
 
 import org.jetbrains.plugins.scala.dfa.lattice.MeetSemiLatticeOps.MeetSemiLatticeExt
-import org.jetbrains.plugins.scala.dfa.latticeTop
+import org.jetbrains.plugins.scala.dfa.{latticeBottom, latticeTop}
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 
 /**
  * A meet-semi-lattice is a [[SemiLattice]] with a reflexive `meet` operation
@@ -54,5 +55,11 @@ object MeetSemiLatticeOps extends MeetSemiLatticeOps {
 
     def meetAll[LL >: L](others: IterableOnce[LL])(implicit lattice: MeetSemiLattice[LL]): LL =
       lattice.meetAll(element, others)
+
+    def narrow[LL <: L: ClassTag: HasTop: HasBottom](implicit lattice: MeetSemiLattice[L]): LL =
+      lattice.meet(element, latticeTop[LL]) match {
+        case ll: LL => ll
+        case _ => latticeBottom[LL]
+      }
   }
 }
