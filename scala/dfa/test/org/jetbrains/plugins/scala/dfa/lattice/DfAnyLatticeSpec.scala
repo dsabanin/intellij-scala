@@ -8,7 +8,10 @@ class DfAnyLatticeSpec extends LatticeSpec[DfAny] {
     Seq(
       DfAny.Top,
       DfAny.Bottom
-    ) ++ DfAnyValLatticeSpec.latticeElementSamples ++ DfAnyRefLatticeSpec.latticeElementSamples
+    ) ++
+      DfAnyValLatticeSpec.latticeElementSamples ++
+      DfAnyRefLatticeSpec.latticeElementSamples ++
+      DfNullLatticeSpec.latticeElementSamples
   ).distinct
 }
 

@@ -12,23 +12,20 @@ sealed trait DfAny extends Product with Serializable {
   def toBoolLat: BoolLat = BoolLat.Bottom
 }
 object DfAny {
-  lazy val Top: DfAny = join[DfAny](DfAnyVal.Top, DfAnyRef.Top)
+  lazy val Top: DfAny = join[DfAny](DfAnyVal.Top, DfAnyRef.Top, DfNull.Top)
   sealed trait Concrete extends DfAny
   val Bottom: DfNothing.type = DfNothing
 
-  implicit val lattice: Lattice[DfAny] = new ProductLattice[DfAny](Top, Bottom, Array(DfAnyVal.lattice, DfAnyRef.lattice)) {
-    override protected def createTuple(elements: Array[DfAny]): DfAny = {
+  implicit val lattice: Lattice[DfAny] = new ProductLattice[DfAny](Top, Bottom, Array(DfAnyVal.lattice, DfAnyRef.lattice, DfNull.lattice)) {
+    override protected def createTuple(elements: Array[DfAny]): DfAny =
       if (elements.forall(_ == DfNothing)) DfNothing
-      else {
-
-        DfAnyProductTuple(elements)
-      }
-    }
+      else DfAnyProductTuple(elements)
 
     override protected def indexOf(element: DfAny): Option[Int] = element match {
       case DfNothing => None
       case _: DfAnyVal => Some(0)
       case _: DfAnyRef => Some(1)
+      case _: DfNull => Some(2)
       case _ => throw new RuntimeException("Unreachable Code")
     }
 
@@ -202,6 +199,37 @@ object DfNumeric {
 
 object DfInt extends DfNumeric.KindFactory[Int](DfNumeric.IntKind, "DfInt") { protected[this] override def initialBottom: Abstract = DfNothing }
 
+/****************************** null ****************************/
+/*
+ * null can come from multiple places
+ *   null literal                          -> it's definitely null
+ *   method/value in scala                 -> could be null, but is probably not
+ *   method/value in java                  -> could be null and is more probably than scala
+ *   method/value annotated with @Nullable -> can be null and will be sometimes
+ *   method/value annotated with @NotNull  -> will not be null
+ *
+ *         Top        (<- can be null, for example if something is annotated with @Nullable)
+ *          |
+ *       Unlikely     (<- can be null but unlikely, for example a parameter or return of some method not annotated)
+ *          |
+ *        Bottom      (<- never null, for example if annotated with @NotNull)
+ */
+sealed trait DfNull extends DfAny
+object DfNull {
+  val Top: Concrete = Concrete
+  type Concrete = Concrete.type
+  case object Concrete extends DfNull {
+    override def toString: String = "DfNull.Top"
+  }
+
+  case object Unlikely extends DfNull {
+    override def toString: String = "DfNull.Unlikely"
+  }
+
+  val Bottom: DfNull = DfNothing
+
+  implicit val lattice: Lattice[DfNull] = new FlatLattice(Top, Bottom)
+}
 
 /****************************** Unit ****************************/
 sealed trait DfUnit extends DfAnyVal
@@ -223,5 +251,6 @@ sealed trait DfNothing
     with DfAnyRef
     with DfUnit
     with DfBool
+    with DfNull
     with DfInt.Abstract
 case object DfNothing extends DfNothing
