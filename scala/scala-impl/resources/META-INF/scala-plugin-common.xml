@@ -1312,6 +1312,14 @@
                          shortName="ScalaStyle"
                          enabledByDefault="true" language="Scala"/>
 
+        <!--Dataflow inspections-->
+        <localInspection implementationClass="org.jetbrains.plugins.scala.codeInspection.dfa.ReturnsNullInspection"
+                         bundle="messages.ScalaInspectionBundle"
+                         key="displayname.returns.null"
+                         groupPath="Scala" groupKey="group.dataflow"
+                         shortName="DfaReturnsNull"
+                         enabledByDefault="true" language="Scala" isInternal="true" />
+
         <!--collection inspections-->
         <!--size-->
         <localInspection implementationClass="org.jetbrains.plugins.scala.codeInspection.collections.EmptyCheckInspection"
