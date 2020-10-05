@@ -3,6 +3,7 @@ package cfg
 
 sealed trait Node {
   type SourceInfo
+  type Block = cfg.Block { type SourceInfo = Node.this.SourceInfo }
 
   def graph: Graph[SourceInfo]
   def block: Block
@@ -15,7 +16,7 @@ sealed trait Node {
 
 sealed trait Jumping extends Node {
   def targetIndex: Int
-  final def target: Node = graph(targetIndex)
+  final def target: Node { type SourceInfo = Jumping.this.SourceInfo } = graph(targetIndex)
   final def targetLabel: String = target.labelString
 }
 

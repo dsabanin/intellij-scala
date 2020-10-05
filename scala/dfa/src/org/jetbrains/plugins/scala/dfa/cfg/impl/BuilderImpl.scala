@@ -15,6 +15,7 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
 
   private type NodeImpl = impl.NodeImpl[SourceInfo] with Node
   private type JumpingImpl = impl.JumpingImpl[SourceInfo] with Jumping
+  private type ArgumentImpl = impl.ArgumentImpl[SourceInfo]
   private type Block = impl.BlockImpl[SourceInfo]
 
   private class Scope(val block: Block, var variables: Map[Variable, Value])
@@ -115,7 +116,7 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
     node
   }
 
-  private val argumentsBuilder = BuilderWithSize.newBuilder[Argument](ArraySeq)
+  private val argumentsBuilder = BuilderWithSize.newBuilder[ArgumentImpl](ArraySeq)
   override def addArgument(name: String, anchor: AnyRef): Variable = {
     val argumentsAdded = argumentsBuilder.elementsAdded
     assert(argumentsAdded == nodesBuilder.elementsAdded, "Cannot add arguments after having added other nodes")

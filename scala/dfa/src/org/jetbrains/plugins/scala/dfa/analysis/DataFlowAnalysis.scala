@@ -4,10 +4,15 @@ package analysis
 import org.jetbrains.plugins.scala.dfa.analysis.DataFlowAnalysis.WQItem
 import org.jetbrains.plugins.scala.dfa.analysis.impl.createNodeInstance
 
+import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 
-final class DataFlowAnalysis(val graph: cfg.Graph[_]) {
-  private val items = graph.nodes.zipWithIndex.map { case (node, index) => new WQItem(index, node) }
+final class DataFlowAnalysis[Info](val graph: cfg.Graph[Info]) {
+  private val items: ArraySeq[WQItem] =
+    graph.nodes.iterator
+      .zipWithIndex
+      .map { case (node, index) => new WQItem(index, node) }
+      .to(ArraySeq)
   private val workQueue = mutable.PriorityQueue.empty[WQItem](Ordering.by(_.index))
   private var endStates = List.empty[State]
 
@@ -65,7 +70,6 @@ final class DataFlowAnalysis(val graph: cfg.Graph[_]) {
 
     assert(hasFinished)
     assert(graph.values.lift(idx).contains(value))
-
 
     val valuesFromAllStates =
       finishedStates.iterator

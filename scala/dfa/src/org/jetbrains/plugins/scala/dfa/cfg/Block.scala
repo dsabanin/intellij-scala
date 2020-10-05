@@ -1,9 +1,11 @@
-package org.jetbrains.plugins.scala.dfa.cfg
+package org.jetbrains.plugins.scala.dfa
+package cfg
 
 import scala.collection.SeqView
 
 trait Block {
   type SourceInfo
+  type Node = cfg.Node { type SourceInfo = Block.this.SourceInfo }
 
   def graph: Graph[SourceInfo]
 
