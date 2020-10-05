@@ -3,6 +3,7 @@ package dfa
 
 import org.jetbrains.plugins.scala.dfa.lattice.Lattice
 import org.jetbrains.plugins.scala.dfa.lattice.specific.{BinaryLattice, FlatLattice, PowerSetLattice, ProductLattice}
+import org.jetbrains.plugins.scala.dfa.utils.DfAnyExt
 
 import scala.util.hashing.MurmurHash3
 
@@ -40,6 +41,8 @@ object DfAny {
       }
     }
   }
+
+  implicit def toAnyExt(dfAny: DfAny): DfAnyExt = new DfAnyExt(dfAny)
 }
 
 
