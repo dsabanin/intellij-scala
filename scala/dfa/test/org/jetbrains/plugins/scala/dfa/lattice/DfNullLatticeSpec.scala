@@ -10,5 +10,5 @@ class DfNullLatticeSpec extends LatticeSpec[DfNull] {
 
 object DfNullLatticeSpec {
   val latticeElementSamples: Seq[DfNull] =
-    Seq(DfNull.Top, DfNull.Unlikely, DfNull.Bottom)
+    Seq(DfNull.Top, DfNull.Unexpected, DfNull.Bottom)
 }

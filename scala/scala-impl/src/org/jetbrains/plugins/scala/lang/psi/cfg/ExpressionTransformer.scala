@@ -17,7 +17,7 @@ private trait ExpressionTransformer { this: Transformer =>
       case ScLongLiteral(long) => builder.constant(transformationNotSupported)
       case ScFloatLiteral(float) => builder.constant(transformationNotSupported)
       case ScDoubleLiteral(double) => builder.constant(transformationNotSupported)
-      case _: ScNullLiteral => builder.constant(DfNull.Concrete)
+      case _: ScNullLiteral => builder.constant(DfNull.Always)
       case ScSymbolLiteral(_) => transformationNotSupported
       case ScStringLiteral(_) => transformationNotSupported
 

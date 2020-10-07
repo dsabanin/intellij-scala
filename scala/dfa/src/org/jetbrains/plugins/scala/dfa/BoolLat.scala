@@ -1,7 +1,7 @@
 package org.jetbrains.plugins.scala.dfa
 
-import org.jetbrains.plugins.scala.dfa.lattice.{JoinSemiLattice, Lattice}
 import org.jetbrains.plugins.scala.dfa.lattice.specific.{FlatJoinSemiLattice, FlatLattice}
+import org.jetbrains.plugins.scala.dfa.lattice.{JoinSemiLattice, Lattice}
 
 /**
  * A complete bool lattice
@@ -41,6 +41,9 @@ object BoolLat {
     canBeTrue = true,
     canBeFalse = true,
   )
+
+  final type Maybe = Top.type
+  final val Maybe: Maybe = Top
 
   final case object True extends BoolSemiLat(
     canBeTrue = true,

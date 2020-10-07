@@ -211,25 +211,25 @@ object DfInt extends DfNumeric.KindFactory[Int](DfNumeric.IntKind, "DfInt") { pr
  *   method/value annotated with @Nullable -> can be null and will be sometimes
  *   method/value annotated with @NotNull  -> will not be null
  *
- *         Top        (<- can be null, for example if something is annotated with @Nullable)
+ *         Top        (<- null; for example if something is annotated with @Nullable)
  *          |
- *       Unlikely     (<- can be null but unlikely, for example a parameter or return of some method not annotated)
+ *      Unexpected    (<- can be null, but unlikely; for example a parameter or return of some method that is not annotated)
  *          |
  *        Bottom      (<- never null, for example if annotated with @NotNull)
  */
 sealed trait DfNull extends DfAny
 object DfNull {
-  val Top: Concrete = Concrete
-  type Concrete = Concrete.type
-  case object Concrete extends DfNull {
-    override def toString: String = "DfNull.Top"
+  val Top: Always = Always
+  type Always = Always.type
+  case object Always extends DfNull {
+    override def toString: String = "DfNull.Always"
   }
 
-  case object Unlikely extends DfNull {
-    override def toString: String = "DfNull.Unlikely"
+  case object Unexpected extends DfNull {
+    override def toString: String = "DfNull.Unexpected"
   }
 
-  val Bottom: DfNull = DfNothing
+  val Bottom: DfNothing.type = DfNothing
 
   implicit val lattice: Lattice[DfNull] = new FlatLattice(Top, Bottom)
 }

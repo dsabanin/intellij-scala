@@ -56,7 +56,7 @@ object MeetSemiLatticeOps extends MeetSemiLatticeOps {
     def meetAll[LL >: L](others: IterableOnce[LL])(implicit lattice: MeetSemiLattice[LL]): LL =
       lattice.meetAll(element, others)
 
-    def narrow[LL <: L: ClassTag: HasTop: HasBottom](implicit lattice: MeetSemiLattice[L]): LL =
+    def narrowed[LL <: L: ClassTag: HasTop: HasBottom](implicit lattice: MeetSemiLattice[L]): LL =
       lattice.meet(element, latticeTop[LL]) match {
         case ll: LL => ll
         case _ => latticeBottom[LL]
