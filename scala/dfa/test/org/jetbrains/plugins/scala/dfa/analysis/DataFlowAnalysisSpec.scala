@@ -5,11 +5,12 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 class DataFlowAnalysisSpec extends AnyFunSuite with Matchers {
-  private lazy val (arg, const, graph) = {
-    val builder = cfg.Builder.newBuilder[AnyRef]()
+  class Source
+  private lazy val (arg, argSource, const, constSource, graph) = {
+    val builder = cfg.Builder.newBuilder[Source]()
 
-    val argSource = new AnyRef
-    val constSource = new AnyRef
+    val argSource = new Source
+    val constSource = new Source
 
     val (_, argValue) = builder.addArgument("arg", new AnyRef)
     builder.addSourceInfo(argValue, argSource)
@@ -20,7 +21,9 @@ class DataFlowAnalysisSpec extends AnyFunSuite with Matchers {
     val graph = builder.finish()
     (
       graph.valueForSource(argSource),
+      argSource,
       graph.valueForSource(constSource),
+      constSource,
       graph
     )
   }
@@ -51,5 +54,14 @@ class DataFlowAnalysisSpec extends AnyFunSuite with Matchers {
 
     an [AssertionError] should be thrownBy
       dfa.init(Seq(DfBool.True, DfBool.False))
+  }
+
+  test("dfa results") {
+    val dfa = new DataFlowAnalysis(graph)
+    dfa.run()
+
+    val result = dfa.result
+    result.valueOf(argSource) shouldBe DfAny.Top
+    result.valueOf(constSource) shouldBe DfInt(10)
   }
 }
