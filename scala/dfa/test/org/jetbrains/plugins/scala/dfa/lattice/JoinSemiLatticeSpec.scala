@@ -90,4 +90,17 @@ trait JoinSemiLatticeSpec[L] extends SemiLatticeSpec[L] with TableDrivenProperty
       }
     }
   }
+
+  property("X intersects Y => X intersects (Y join Z)") {
+    forAll { (x: L, y: L) =>
+      whenever(x intersects y) {
+        forAll { (z: L) =>
+          val yz = y join z
+          withClue(s"[y join z = $yz]") {
+            assert(x intersects yz)
+          }
+        }
+      }
+    }
+  }
 }

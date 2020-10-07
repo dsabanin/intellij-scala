@@ -94,4 +94,17 @@ trait MeetSemiLatticeSpec[L] extends SemiLatticeSpec[L] with TableDrivenProperty
       }
     }
   }
+
+  property("!(X intersects Y) => !(X intersects (Y meet Z))") {
+    forAll { (x: L, y: L) =>
+      whenever(!(x intersects y)) {
+        forAll { (z: L) =>
+          val yz = y meet z
+          withClue(s"[y meet z = $yz]") {
+            assert(!(x intersects yz))
+          }
+        }
+      }
+    }
+  }
 }
