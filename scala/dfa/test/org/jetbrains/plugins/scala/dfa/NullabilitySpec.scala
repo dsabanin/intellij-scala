@@ -1,6 +1,7 @@
 package org.jetbrains.plugins.scala.dfa
 
 import org.jetbrains.plugins.scala.dfa.lattice.{HasBottom, JoinSemiLattice, JoinSemiLatticeSpec}
+import org.jetbrains.plugins.scala.dfa.testutils.CustomMatchers._
 import org.scalatest.prop.TableFor3
 
 /**
@@ -66,4 +67,13 @@ class NullabilitySpec extends JoinSemiLatticeSpec[Nullability] {
       (Nullability.NeverNull,               Nullability.MaybeNullButNotExpected, Nullability.MaybeNullButNotExpected),
       (Nullability.AlwaysNull,              Nullability.MaybeNullButNotExpected, Nullability.MaybeNull),
     )
+
+  property("can be constructed from DfNull") {
+    DfNull.Always     should haveNullability (Nullability.AlwaysNull)
+    DfNull.Unexpected should haveNullability (Nullability.MaybeNullButNotExpected)
+    DfNothing         should haveNullability (Nullability.NeverNull)
+
+    DfAny.Top should haveNullability(Nullability.MaybeNull)
+    DfAnyVal.Top should haveNullability(Nullability.NeverNull)
+  }
 }
