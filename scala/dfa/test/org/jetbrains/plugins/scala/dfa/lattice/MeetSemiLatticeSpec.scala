@@ -6,7 +6,7 @@ import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor3, TableFor4}
 trait MeetSemiLatticeSpec[L] extends SemiLatticeSpec[L] with TableDrivenPropertyChecks {
   override protected def lattice: MeetSemiLattice[L]
 
-  override protected lazy val latticeHasBottom: Option[HasBottom[L]] = Some(lattice)
+  override protected lazy val latticeHasBottom: Some[HasBottom[L]] = Some(lattice)
 
   protected def latticeMeetSamples: TableFor3[L, L, L] = Table(("A", "B", "A meet B"))
 

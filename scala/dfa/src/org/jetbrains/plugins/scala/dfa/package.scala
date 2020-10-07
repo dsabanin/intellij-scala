@@ -5,3 +5,4 @@ package object dfa extends lattice.HasTopOps
   with lattice.SemiLatticeOps
   with lattice.JoinSemiLatticeOps
   with lattice.MeetSemiLatticeOps
+  with lattice.InvertibleLatticeOps

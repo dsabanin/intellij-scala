@@ -1,7 +1,7 @@
 package org.jetbrains.plugins.scala.dfa
 
 import org.jetbrains.plugins.scala.dfa.lattice.specific.{FlatJoinSemiLattice, FlatLattice}
-import org.jetbrains.plugins.scala.dfa.lattice.{JoinSemiLattice, Lattice}
+import org.jetbrains.plugins.scala.dfa.lattice.{InvertibleLattice, JoinSemiLattice, Lattice}
 
 /**
  * A complete bool lattice
@@ -24,15 +24,18 @@ sealed abstract class BoolLat(final val canBeTrue: Boolean, final val canBeFalse
 }
 
 object BoolLat {
-  def apply(boolean: Boolean): BoolSemiLat =
-    if (boolean) True else False
+  def apply(boolean: Boolean): Concrete = Concrete(boolean)
 
   def apply(boolean: Option[Boolean]): BoolLat =
     boolean.fold(Bottom: BoolLat)(BoolLat(_))
 
   sealed trait Concrete extends BoolSemiLat
 
-  def unapply(boolean: Concrete): Some[Boolean] = Some(boolean.canBeTrue)
+  object Concrete {
+    def apply(boolean: Boolean): Concrete =
+      if (boolean) True else False
+    def unapply(boolean: Concrete): Some[Boolean] = Some(boolean.canBeTrue)
+  }
 
   /**
    * Describes a value that can be true as well as false
@@ -63,7 +66,13 @@ object BoolLat {
     canBeFalse = false,
   )
 
-  implicit val lattice: Lattice[BoolLat] = new FlatLattice[BoolLat](Top, Bottom)
+  implicit val lattice: Lattice[BoolLat] with InvertibleLattice[BoolLat] =
+    new FlatLattice[BoolLat](Top, Bottom) with InvertibleLattice[BoolLat] {
+      final override def invert(element: BoolLat): BoolLat = element match {
+        case Concrete(bool) => BoolSemiLat(!bool)
+        case self => self
+      }
+    }
 }
 
 /**
@@ -81,5 +90,16 @@ object BoolSemiLat {
   val True: BoolLat.True.type = BoolLat.True
   val False: BoolLat.False.type = BoolLat.False
 
-  implicit val joinSemiLattice: JoinSemiLattice[BoolSemiLat] = new FlatJoinSemiLattice[BoolSemiLat](Top)
+  def apply(boolean: Boolean): BoolSemiLat =
+    if (boolean) True else False
+
+  val Concrete: BoolLat.Concrete.type = BoolLat.Concrete
+
+  implicit val joinSemiLattice: JoinSemiLattice[BoolSemiLat] with InvertibleLattice[BoolSemiLat] =
+    new FlatJoinSemiLattice[BoolSemiLat](Top) with InvertibleLattice[BoolSemiLat] {
+      final override def invert(element: BoolSemiLat): BoolSemiLat = element match {
+        case Concrete(bool) => BoolSemiLat(!bool)
+        case self => self
+      }
+    }
 }

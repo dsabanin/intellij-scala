@@ -14,17 +14,17 @@ import scala.annotation.tailrec
  *  \    \  /    /
  *      Bottom
  */
-final class FlatLattice[T](override val top: T, override val bottom: T)
+class FlatLattice[T](override val top: T, override val bottom: T)
   extends JoinSemiLattice[T] with MeetSemiLattice[T]
 {
-  override def <=(subSet: T, superSet: T): Boolean = (subSet, superSet) match {
+  final override def <=(subSet: T, superSet: T): Boolean = (subSet, superSet) match {
     case (a, b) if a == b => true
     case (_, `top`) => true
     case (`bottom`, _) => true
     case _ => false
   }
 
-  override def intersects(lhs: T, rhs: T): Boolean = (lhs, rhs) match {
+  final override def intersects(lhs: T, rhs: T): Boolean = (lhs, rhs) match {
     case (_, `bottom`) => false
     case (`bottom`, _) => false
     case (a, b) if a == b => true
@@ -33,7 +33,7 @@ final class FlatLattice[T](override val top: T, override val bottom: T)
     case _ => false
   }
 
-  override def join(lhs: T, rhs: T): T = (lhs, rhs) match {
+  final override def join(lhs: T, rhs: T): T = (lhs, rhs) match {
     case (a, b) if a == b => a
     case (`bottom`, a) => a
     case (a, `bottom`) => a
@@ -41,7 +41,7 @@ final class FlatLattice[T](override val top: T, override val bottom: T)
   }
 
   @tailrec
-  override def joinAll(first: T, others: IterableOnce[T]): T = {
+  final override def joinAll(first: T, others: IterableOnce[T]): T = {
     first match {
       case `top` => top
       case `bottom` =>
@@ -55,7 +55,7 @@ final class FlatLattice[T](override val top: T, override val bottom: T)
     }
   }
 
-  override def meet(lhs: T, rhs: T): T = (lhs, rhs) match {
+  final override def meet(lhs: T, rhs: T): T = (lhs, rhs) match {
     case (a, b) if a == b => a
     case (`top`, a) => a
     case (a, `top`) => a
@@ -63,7 +63,7 @@ final class FlatLattice[T](override val top: T, override val bottom: T)
   }
 
   @tailrec
-  override def meetAll(first: T, others: IterableOnce[T]): T = {
+  final override def meetAll(first: T, others: IterableOnce[T]): T = {
     first match {
       case `bottom` => bottom
       case `top` =>

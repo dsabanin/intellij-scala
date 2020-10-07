@@ -1,11 +1,11 @@
 package org.jetbrains.plugins.scala.dfa
 
 import org.jetbrains.plugins.scala.dfa.BoolLat._
-import org.jetbrains.plugins.scala.dfa.lattice.{Lattice, LatticeSpec}
+import org.jetbrains.plugins.scala.dfa.lattice.{InvertibleLattice, InvertibleLatticeSpec, Lattice, LatticeSpec}
 import org.scalatest.prop.TableFor3
 
-class BoolLatSpec extends LatticeSpec[BoolLat] {
-  override protected lazy val lattice: Lattice[BoolLat] = BoolLat.lattice
+class BoolLatSpec extends LatticeSpec[BoolLat] with InvertibleLatticeSpec[BoolLat] {
+  override protected lazy val lattice: Lattice[BoolLat] with InvertibleLattice[BoolLat] = BoolLat.lattice
 
   override protected lazy val latticeElementSamples: Seq[BoolLat] =
     BoolSemiLatSpec.latticeElementSamples :+ Bottom

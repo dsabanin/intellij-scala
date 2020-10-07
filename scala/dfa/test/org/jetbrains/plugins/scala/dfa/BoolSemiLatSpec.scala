@@ -1,14 +1,15 @@
 package org.jetbrains.plugins.scala.dfa
 
 import org.jetbrains.plugins.scala.dfa.BoolSemiLat.{False, Top, True}
-import org.jetbrains.plugins.scala.dfa.lattice.{JoinSemiLattice, JoinSemiLatticeSpec, HasBottom}
+import org.jetbrains.plugins.scala.dfa.lattice.{InvertibleLattice, InvertibleLatticeSpec, JoinSemiLattice, JoinSemiLatticeSpec}
 import org.scalatest.prop.TableFor3
 
-class BoolSemiLatSpec extends JoinSemiLatticeSpec[BoolSemiLat] {
+class BoolSemiLatSpec extends JoinSemiLatticeSpec[BoolSemiLat] with InvertibleLatticeSpec[BoolSemiLat] {
   import BoolSemiLat._
-  override protected lazy val lattice: JoinSemiLattice[BoolSemiLat] = BoolSemiLat.joinSemiLattice
+  override protected lazy val lattice: JoinSemiLattice[BoolSemiLat] with InvertibleLattice[BoolSemiLat] =
+    BoolSemiLat.joinSemiLattice
 
-  override protected lazy val latticeHasBottom: Option[HasBottom[BoolSemiLat]] = None
+  override protected lazy val latticeHasBottom: None.type = None
 
   override protected lazy val latticeElementSamples: Seq[BoolSemiLat] = BoolSemiLatSpec.latticeElementSamples
 

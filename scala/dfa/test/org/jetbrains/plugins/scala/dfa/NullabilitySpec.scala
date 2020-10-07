@@ -1,6 +1,6 @@
 package org.jetbrains.plugins.scala.dfa
 
-import org.jetbrains.plugins.scala.dfa.lattice.{HasBottom, JoinSemiLattice, JoinSemiLatticeSpec}
+import org.jetbrains.plugins.scala.dfa.lattice.{JoinSemiLattice, JoinSemiLatticeSpec}
 import org.jetbrains.plugins.scala.dfa.testutils.CustomMatchers._
 import org.scalatest.prop.TableFor3
 
@@ -51,7 +51,7 @@ import org.scalatest.prop.TableFor3
 class NullabilitySpec extends JoinSemiLatticeSpec[Nullability] {
   override protected lazy val lattice: JoinSemiLattice[Nullability] = Nullability.semiLattice
 
-  override protected def latticeHasBottom: Option[HasBottom[Nullability]] = None
+  override protected def latticeHasBottom: None.type = None
 
   override protected lazy val latticeElementSamples: Seq[Nullability] =
     Seq(Nullability.NeverNull, Nullability.AlwaysNull, Nullability.MaybeNullButNotExpected, Nullability.MaybeNull)
