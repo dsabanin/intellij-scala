@@ -4,6 +4,7 @@ package object lattice {
   /**
    * A complete lattice, which is both a join-semi-lattice and meet-semi-lattice.
    *
+   * {{{
    *        X
    *      /  \
    *     /    \
@@ -11,6 +12,7 @@ package object lattice {
    *     \    /
    *      \  /
    *       Y
+   * }}}
    *
    * @tparam L the type to implement the lattice for
    */

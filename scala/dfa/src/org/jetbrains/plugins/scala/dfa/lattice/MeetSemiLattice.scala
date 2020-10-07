@@ -10,10 +10,12 @@ import scala.reflect.ClassTag
  * A meet-semi-lattice is a [[SemiLattice]] with a reflexive `meet` operation
  * where every pair of elements has exactly one infimum.
  *
+ * {{{
  *    A      B
  *     \    /
  *      \  /
  *       Y
+ * }}}
  *
  * Every pair of elements (A, B) have one infimum Y == (A meet B), which is the greatest element so that Y <= A and Y <= B.
  * If `A <= B` than `A meet B == A`

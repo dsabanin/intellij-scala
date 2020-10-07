@@ -8,11 +8,13 @@ import scala.annotation.tailrec
  *
  * A flat lattice has a Top, a Bottom, and possibly infinitely many unrelated other elements in between.
  *
+ * {{{
  *       Top
  *  /    /  \    \
  * A    B    C    D
  *  \    \  /    /
  *      Bottom
+ * }}}
  */
 class FlatLattice[T](override val top: T, override val bottom: T)
   extends JoinSemiLattice[T] with MeetSemiLattice[T]

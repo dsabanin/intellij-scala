@@ -9,10 +9,12 @@ import scala.language.implicitConversions
  * A join-semi-lattice is a [[SemiLattice]] with a reflexive `join` operation
  * where every pair of elements has exactly one supremum.
  *
+ * {{{
  *        X
  *      /   \
  *     /     \
  *    A       B
+ * }}}
  *
  * Every pair of elements (A, B) have one supremum X == (A join B), which is the lowest element so that A <= X and B <= X.
  * If `A <= B` than `A join B == B`

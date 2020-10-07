@@ -12,6 +12,7 @@ package specific
  *
  * Here a lattice on 4 elements (many lattice elements are omitted)
  *
+ * {{{
  *                    Top
  *                   /  \
  *                  /    \
@@ -26,6 +27,7 @@ package specific
  *       \     |       /
  *        \    |      /
  *        [] (= Bottom)
+ * }}}
  */
 abstract class PowerSetLattice[T](override val top: T, override val bottom: T)
   extends JoinSemiLattice[T] with MeetSemiLattice[T] {

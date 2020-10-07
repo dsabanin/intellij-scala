@@ -78,10 +78,12 @@ object BoolLat {
 /**
  * A join-semi-lattice for boolean that does not have a Bottom element
  *
+ * {{{
  *       Top
  *     /    \
  *    /      \
  *  True    False
+ * }}}
  */
 sealed abstract class BoolSemiLat(canBeTrue: Boolean, canBeFalse: Boolean) extends BoolLat(canBeTrue, canBeFalse)
 

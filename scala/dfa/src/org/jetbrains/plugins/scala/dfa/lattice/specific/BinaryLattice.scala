@@ -6,11 +6,12 @@ package specific
  *
  * A binary lattice has only a Top and a Bottom
  *
+ * {{{
  *     Top
  *      |
  *      |
  *    Bottom
- *
+ * }}}
  */
 final class BinaryLattice[T](override val top: T, override val bottom: T)
   extends JoinSemiLattice[T] with MeetSemiLattice[T]

@@ -203,19 +203,21 @@ object DfNumeric {
 object DfInt extends DfNumeric.KindFactory[Int](DfNumeric.IntKind, "DfInt") { protected[this] override def initialBottom: Abstract = DfNothing }
 
 /****************************** null ****************************/
-/*
+/**
  * null can come from multiple places
- *   null literal                          -> it's definitely null
- *   method/value in scala                 -> could be null, but is probably not
- *   method/value in java                  -> could be null and is more probably than scala
- *   method/value annotated with @Nullable -> can be null and will be sometimes
- *   method/value annotated with @NotNull  -> will not be null
+ *  - null literal                          -> it's definitely null
+ *  - method/value in scala                 -> could be null, but is probably not
+ *  - method/value in java                  -> could be null and is more probably than scala
+ *  - method/value annotated with @Nullable -> can be null and will be sometimes
+ *  - method/value annotated with @NotNull  -> will not be null
  *
- *         Top        (<- null; for example if something is annotated with @Nullable)
- *          |
- *      Unexpected    (<- can be null, but unlikely; for example a parameter or return of some method that is not annotated)
- *          |
- *        Bottom      (<- never null, for example if annotated with @NotNull)
+ * {{{
+ *    Top        (<- null; for example if something is annotated with @Nullable)
+ *     |
+ * Unexpected    (<- can be null, but unlikely; for example a parameter or return of some method that is not annotated)
+ *     |
+ *   Bottom      (<- never null, for example if annotated with @NotNull)
+ * }}}
  */
 sealed trait DfNull extends DfAny
 object DfNull {

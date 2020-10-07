@@ -20,6 +20,7 @@ import org.scalatest.prop.TableFor3
  *
  * Here a breakdown using predicate logic.
  *
+ * {{{
  *  Lattice: Null
  *   Null(X) = X can be null
  *   NotNull(X) = X can be something other than null
@@ -35,18 +36,21 @@ import org.scalatest.prop.TableFor3
  *  Lattice: Nullability = Null x Nil
  *  With constraints:
  *   c1: Null(X)   => Nil(X)
+ * }}}
  *
  *  Here, now, the lattice elements and their cartesian deconstruction
  *  with the proofs that because of the constraint, one element cannot exist,
  *  and another es equivalent to another, resulting in 4 elements in the lattice set.
  *  (X argument is omitted to make it less cluttered)
  *
+ * {{{
  *  (NeverNull,  NeverNil)  = Nullability.NeverNull
  *  (NeverNull,  AlwaysNil) = Nullability.MaybeNullButNotExpected
  *  (AlwaysNull, NeverNil)  cannot exist [AlwaysNull => Null =c1=>↯ !Nil = NeverNil]
  *  (AlwaysNull, AlwaysNil) = Nullability.AlwaysNull
  *  (MaybeNull,  NeverNil)  = Nullability.NeverNull  [(if Null: =c1=> Nil↯) => !Null && NotNull = NeverNull]
  *  (MaybeNull,  AlwaysNil) = Nullability.MaybeNull
+ * }}}
  */
 class NullabilitySpec extends JoinSemiLatticeSpec[Nullability] {
   override protected lazy val lattice: JoinSemiLattice[Nullability] = Nullability.semiLattice
