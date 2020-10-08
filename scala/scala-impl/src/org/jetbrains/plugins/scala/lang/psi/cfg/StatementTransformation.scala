@@ -5,16 +5,31 @@ import org.jetbrains.plugins.scala.lang.psi.api.expr.{ScBlockStatement, ScExpres
 import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScFunction, ScPatternDefinition, ScValueDeclaration, ScValueOrVariable, ScVariableDeclaration, ScVariableDefinition}
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.imports.ScImportStmt
 
+import scala.annotation.tailrec
+
 private trait StatementTransformation { this: Transformer =>
-  final def transformBlock(stmts: Seq[ScBlockStatement]): builder.Value = {
-    stmts.foldLeft(Option.empty[builder.Value]) {
-      (_, stmt) => transformStatement(stmt)
-    }.getOrElse(builder.constant(DfUnit.Concrete))
+  final def transformStatements(stmts: Seq[ScBlockStatement], rreq: ResultReq): rreq.Result[builder.Value] = {
+    val it = stmts.iterator
+    if (!it.hasNext) {
+      rreq.ifNeeded(builder.constant(DfUnit.Top))
+    } else {
+      @tailrec
+      def processNext(): rreq.Result[builder.Value] = {
+        val stmt = it.next()
+        val hasNext = it.hasNext
+        if (!hasNext) transformStatement(stmt, rreq)
+        else {
+          transformStatement(stmt, ResultReq.NotNeeded)
+          processNext()
+        }
+      }
+      processNext()
+    }
   }
 
-  final def transformStatement(stmt: ScBlockStatement): Option[builder.Value] = attachSourceInfoIfSome(stmt) {
-    stmt match {
-      case expression: ScExpression => Some(transformExpression(expression))
+  final def transformStatement(stmt: ScBlockStatement, rreq: ResultReq): rreq.Result[builder.Value] = attachSourceInfoIfSome(stmt) {
+    val maybeResult = stmt match {
+      case expression: ScExpression => transformExpression(expression, rreq)
       case function: ScFunction =>
         transformationNotSupported
         None
@@ -25,6 +40,7 @@ private trait StatementTransformation { this: Transformer =>
         transformValueOrVariable(variable)
         None
     }
+    rreq.orIfNeeded(maybeResult, builder.constant(DfUnit.Top))
   }
 
   final def transformValueOrVariable(variable: ScValueOrVariable): Unit = variable match {

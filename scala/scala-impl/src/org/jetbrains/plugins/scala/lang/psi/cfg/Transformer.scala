@@ -14,7 +14,7 @@ private final class Transformer(val builder: Builder)
     value
   }
 
-  def attachSourceInfoIfSome[T <: builder.Value](psiElement: PsiElement)(body: => Option[T]): Option[T] = {
+  def attachSourceInfoIfSome[O <: Option[_ <: builder.Value]](psiElement: PsiElement)(body: => O): O = {
     val value = body
     value.foreach(builder.addSourceInfo(_, psiElement))
     value

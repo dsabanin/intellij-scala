@@ -8,8 +8,9 @@ import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScFun, ScParameterOw
 import org.jetbrains.plugins.scala.lang.resolve.ScalaResolveResult
 
 private trait ExpressionTransformer { this: Transformer =>
-  final def transformExpression(expr: ScExpression): builder.Value = attachSourceInfo(expr) {
-    expr match {
+  final def transformExpression(expr: ScExpression): builder.Value = transformExpression(expr, ResultReq.Needed).value
+  final def transformExpression(expr: ScExpression, rreq: ResultReq): rreq.Result[builder.Value] = attachSourceInfoIfSome(expr) {
+    Some(expr match {
         // **************** Literals **************** //
       case ScBooleanLiteral(bool) => builder.constant(DfBool(bool))
       case ScCharLiteral(char) => builder.constant(transformationNotSupported)
@@ -18,40 +19,51 @@ private trait ExpressionTransformer { this: Transformer =>
       case ScFloatLiteral(float) => builder.constant(transformationNotSupported)
       case ScDoubleLiteral(double) => builder.constant(transformationNotSupported)
       case _: ScNullLiteral => builder.constant(DfNull.Always)
+      case _: ScUnitExpr => builder.constant(DfUnit.Concrete)
       case ScSymbolLiteral(_) => transformationNotSupported
-      case ScStringLiteral(_) => transformationNotSupported
+      case ScStringLiteral(str) => builder.constant(new DfStringRef(str))
 
       // ***************** Reference **************** //
       case reference: ScReferenceExpression => transformReference(reference)
 
       // ******************* Block ****************** //
       case ScParenthesisedExpr(inner) => transformExpression(inner)
-      case block: ScBlockExpr => transformBlock(block.statements)
+      case block: ScBlockExpr => return transformStatements(block.statements, rreq)
 
 
       // *************** Control stuff *************** //
       case ScIf(condExpr, thenExpr, elseExpr) =>
         // if
         val condValue = condExpr.fold(builder.constant(DfBool.Top))(transformExpression)
-        val elseJump = builder.jumpToFutureIfNot(condValue, "then")
+        val elseOrEndJump = builder.jumpToFutureIfNot(condValue, afterBlockName = "then")
+        val resultVariable = rreq.ifNeeded(builder.newVariable("ifResult", new AnyRef))
+
+        def buildAndWriteIfNeeded(expr: Option[ScExpression], default: DfAny): Unit = {
+          val maybeResult = expr.flatMap(transformExpression(_, rreq))
+          for (resultVariable <- resultVariable) {
+            val result = maybeResult.getOrElse(builder.constant(default))
+            builder.writeVariable(resultVariable, result)
+          }
+        }
 
         // then
-        val resultVariable = builder.newVariable("ifResult", new AnyRef)
-        val thenValue = thenExpr.fold(builder.constant(DfNothing))(transformExpression)
-        builder.writeVariable(resultVariable, thenValue)
-        val endJump = builder.jumpToFuture()
+        buildAndWriteIfNeeded(thenExpr, DfNothing)
 
         // else
-        builder.jumpHere("else", elseJump)
-        val elseValue = elseExpr.fold(builder.constant(DfUnit.Concrete))(transformExpression)
-        builder.writeVariable(resultVariable, elseValue)
+        val endJump = if (rreq.needed || elseExpr.isDefined) {
+          val endJump = builder.jumpToFuture()
+          builder.jumpHere("else", elseOrEndJump)
+          buildAndWriteIfNeeded(elseExpr, DfUnit.Concrete)
+
+          endJump
+        } else elseOrEndJump
 
         // end
         builder.jumpHere("endIf", endJump)
-        builder.readVariable(resultVariable)
+        return rreq.map(resultVariable)(builder.readVariable)
 
       case _ => transformationNotSupported
-    }
+    })
   }
 
   final def transformReference(reference: ScReferenceExpression): builder.Value = attachSourceInfo(reference) {
