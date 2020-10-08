@@ -62,22 +62,26 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
     curMaybeScope = Some(new Scope(block, newVariables))
   }
 
-  private def unifyVariables(incomingScope: Seq[Scope]): Map[Variable, Value] = {
-    val builder = Map.newBuilder[Variable, Value]
+  private def unifyVariables(incomingScope: Seq[Scope]): Map[Variable, Value] = incomingScope match {
+    case Seq(one) => one.variables
+    case _ =>
+      val builder = Map.newBuilder[Variable, Value]
 
-    val lifeVariables = incomingScope
-      .map(_.variables.keySet)
-      .reduceOption(_ & _)
-      .getOrElse(Set.empty)
+      val lifeVariables = incomingScope
+        .map(_.variables.keySet)
+        .reduceOption(_ & _)
+        .getOrElse(Set.empty)
 
-    for (variable <- lifeVariables) {
-      val incomingValues = incomingScope.groupMap(_.variables(variable))(_.block)
-      val phi = addNode(new PhiValueImpl(incomingValues))
+      for (variable <- lifeVariables) {
+        val incomingValues = incomingScope.groupMap(_.variables(variable))(_.block)
+        val phi =
+          if (incomingValues.size > 1) addNode(new PhiValueImpl(incomingValues))
+          else incomingValues.head._1
 
-      builder += (variable -> phi)
-    }
+        builder += (variable -> phi)
+      }
 
-    builder.result()
+      builder.result()
   }
 
   private def closeBlock(): Scope = {
