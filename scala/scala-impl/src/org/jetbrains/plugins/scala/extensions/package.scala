@@ -46,7 +46,7 @@ import org.jetbrains.plugins.scala.lang.psi.api.base.patterns.ScBindingPattern
 import org.jetbrains.plugins.scala.lang.psi.api.base.{Constructor, ScFieldId}
 import org.jetbrains.plugins.scala.lang.psi.api.expr.ScNewTemplateDefinition
 import org.jetbrains.plugins.scala.lang.psi.api.statements.params.{ScClassParameter, ScParameter}
-import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScDeclaredElementsHolder, ScFunction, ScFunctionDefinition}
+import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScDeclaredElementsHolder, ScFunction}
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef._
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.{ScModifierListOwner, ScNamedElement, ScTypedDefinition}
 import org.jetbrains.plugins.scala.lang.psi.api.{ScalaFile, ScalaPsiElement}
@@ -127,20 +127,6 @@ package object extensions {
         val retTpe = repr.getReturnType.toScType()
         Right(FunctionType((retTpe, parametersTypes)))
     }
-
-    @CachedInUserData(repr, BlockModificationTracker(repr))
-    def controlFlowGraph: Option[PsiGraph] =
-      repr.asOptionOf[ScFunctionDefinition].flatMap(PsiToCfgTransformation.transform)
-
-    @CachedInUserData(repr, BlockModificationTracker(repr))
-    def dataFlowResult: Option[DfaResult[PsiElement]] =
-      for {
-        graph <- controlFlowGraph
-      } yield {
-        val dfa = new DataFlowAnalysis(graph)
-        dfa.run()
-        dfa.result
-      }
   }
 
   object PsiMethodExt {
@@ -851,10 +837,21 @@ package object extensions {
       PsiTreeUtil.firstChild(element).elementType == token
     }
 
+    @CachedInUserData(element, BlockModificationTracker(element))
+    def controlFlowGraph: Option[PsiGraph] = PsiToCfgTransformation.transform(element)
+
+    @CachedInUserData(element, BlockModificationTracker(element))
+    def dataFlowResult: Option[DfaResult[PsiElement]] =
+      for {
+        graph <- this.controlFlowGraph
+      } yield {
+        val dfa = new DataFlowAnalysis(graph)
+        dfa.run()
+        dfa.result
+      }
+
     def dfaValue: Option[DfAny] =
-      element.getContext.asOptionOf[PsiMethod]
-        .flatMap(_.dataFlowResult)
-        .map(_.valueOf(element))
+      dataFlowResult.map(_.valueOf(element))
   }
 
   implicit class PsiTypeExt(val `type`: PsiType) extends AnyVal {
