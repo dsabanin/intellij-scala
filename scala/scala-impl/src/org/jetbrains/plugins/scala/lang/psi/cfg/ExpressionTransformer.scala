@@ -3,7 +3,7 @@ package org.jetbrains.plugins.scala.lang.psi.cfg
 import com.intellij.psi.{PsiMethod, PsiNamedElement}
 import org.jetbrains.plugins.scala.dfa._
 import org.jetbrains.plugins.scala.lang.psi.api.base.literals._
-import org.jetbrains.plugins.scala.lang.psi.api.expr._
+import org.jetbrains.plugins.scala.lang.psi.api.expr.{ScTypedExpression, _}
 import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScFun, ScParameterOwner}
 import org.jetbrains.plugins.scala.lang.resolve.ScalaResolveResult
 
@@ -31,9 +31,11 @@ private trait ExpressionTransformer { this: Transformer =>
 
       // ***************** Reference **************** //
       case reference: ScReferenceExpression => transformReference(reference)
+      case _: ScThisReference => return buildThisValueOrNothing(rreq)
 
       // ******************* Block ****************** //
-      case ScParenthesisedExpr(inner) => transformExpression(inner)
+      case ScParenthesisedExpr(inner) => return transformExpression(inner, rreq)
+      case typedExpr: ScTypedExpression => return transformExpression(typedExpr.expr, rreq)
       case block: ScBlock => return transformStatements(block.statements, rreq)
 
 
@@ -71,7 +73,7 @@ private trait ExpressionTransformer { this: Transformer =>
           case None => builder.ret()
         }
         builder.allowDeadBlockHere("deadCodeAfterReturn", scopeInfo)
-        return rreq.ifNeeded(builder.constant(DfUnit.Concrete))
+        return rreq.ifNeeded(buildUnit())
 
       case e => transformationNotSupported(e)
     })
@@ -94,6 +96,15 @@ private trait ExpressionTransformer { this: Transformer =>
         // we have to be able to handle the error here
         transformationNotSupported(reference)
     }
+  }
+
+  final def buildAny(): builder.Value = builder.constant(DfAny.Top)
+  final def buildNothing(): builder.Value = builder.constant(DfNothing)
+  final def buildUnit(): builder.Value = builder.constant(DfUnit.Concrete)
+
+  final def buildThisValueOrNothing(rreq: ResultReq): rreq.Result[builder.Value] = thisVariable match {
+    case Some(thisVariable) => Some(builder.readVariable(thisVariable))
+    case None => rreq.ifNeeded(buildAny())
   }
 
   object ResolvesToFunction {

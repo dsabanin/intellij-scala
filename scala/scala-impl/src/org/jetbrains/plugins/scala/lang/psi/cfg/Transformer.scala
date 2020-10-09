@@ -4,7 +4,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.plugins.scala.lang.psi.api.ScalaPsiElement
 import org.jetbrains.plugins.scala.lang.psi.api.expr.ScBlockStatement
 
-private final class Transformer(val builder: Builder)
+private final class Transformer(val builder: Builder, val thisVariable: Option[Builder.Variable])
   extends PatternTransformer
   with ExpressionTransformer
   with StatementTransformation

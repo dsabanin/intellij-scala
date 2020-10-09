@@ -1,17 +1,16 @@
 package org.jetbrains.plugins.scala.lang.psi.cfg
 
-import org.jetbrains.plugins.scala.dfa.DfNothing
 import org.jetbrains.plugins.scala.lang.psi.api.base.ScPatternList
-import org.jetbrains.plugins.scala.lang.psi.api.base.patterns.{ScParenthesisedPattern, ScPattern, ScReferencePattern}
+import org.jetbrains.plugins.scala.lang.psi.api.base.patterns.{ScParenthesisedPattern, ScPattern, ScReferencePattern, ScWildcardPattern}
 import org.jetbrains.plugins.scala.lang.psi.api.expr.ScExpression
 
 import scala.annotation.tailrec
 
 private trait PatternTransformer { this: Transformer =>
   final def transformPatternList(patternList: ScPatternList, expr: Option[ScExpression]): Unit = {
-    val subject = expr.fold(builder.constant(DfNothing))(expr => transformExpression(expr))
-
     for (pattern <- patternList.patterns) {
+      // yes, in a pattern list, every pattern duplicates the expression
+      val subject = expr.fold(buildAny())(expr => transformExpression(expr))
       transformPattern(pattern, subject)
     }
   }
@@ -27,7 +26,11 @@ private trait PatternTransformer { this: Transformer =>
     case pattern: ScReferencePattern =>
       builder.writeVariable(variable(pattern), subject)
       None
-    case _ => transformationNotSupported(pattern)
+    case _: ScWildcardPattern =>
+      // nothing to do
+      None
+    case _ =>
+      transformationNotSupported(pattern)
   }
 
   final def buildThrowMatchError(): Unit = transformationNotSupported("Cannot create match error yet")

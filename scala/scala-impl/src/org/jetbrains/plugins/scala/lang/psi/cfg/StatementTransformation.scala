@@ -1,6 +1,5 @@
 package org.jetbrains.plugins.scala.lang.psi.cfg
 
-import org.jetbrains.plugins.scala.dfa.DfUnit
 import org.jetbrains.plugins.scala.lang.psi.api.expr.{ScBlockStatement, ScExpression}
 import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScFunction, ScPatternDefinition, ScValueDeclaration, ScValueOrVariable, ScVariableDeclaration, ScVariableDefinition}
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.imports.ScImportStmt
@@ -11,7 +10,7 @@ private trait StatementTransformation { this: Transformer =>
   final def transformStatements(stmts: Seq[ScBlockStatement], rreq: ResultReq): rreq.Result[builder.Value] = {
     val it = stmts.iterator
     if (!it.hasNext) {
-      rreq.ifNeeded(builder.constant(DfUnit.Top))
+      rreq.ifNeeded(buildUnit())
     } else {
       @tailrec
       def processNext(): rreq.Result[builder.Value] = {
@@ -40,7 +39,7 @@ private trait StatementTransformation { this: Transformer =>
         transformValueOrVariable(variable)
         None
     }
-    rreq.orIfNeeded(maybeResult, builder.constant(DfUnit.Top))
+    rreq.orIfNeeded(maybeResult, buildUnit())
   }
 
   final def transformValueOrVariable(variable: ScValueOrVariable): Unit = variable match {
