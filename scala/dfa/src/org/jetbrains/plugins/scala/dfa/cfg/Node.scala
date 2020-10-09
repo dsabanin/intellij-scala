@@ -15,7 +15,9 @@ sealed trait Node {
 sealed trait Jumping extends Node {
   def targetIndex: Int
   final def target: Node = graph(targetIndex)
-  final def targetLabel: String = target.labelString
+  final def targetLabel: String =
+    if (targetIndex < 0) "<unresolved>"
+    else target.labelString
 }
 
 sealed trait Value extends Node {
