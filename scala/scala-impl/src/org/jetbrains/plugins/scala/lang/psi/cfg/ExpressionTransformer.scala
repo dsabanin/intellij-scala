@@ -64,6 +64,15 @@ private trait ExpressionTransformer { this: Transformer =>
         val subject = transformExpressionOrDefault(scMatch.expression, DfAny.Top)
         return transformCaseClauses(scMatch.caseClauses, subject, rreq)
 
+      case ret: ScReturn =>
+        val scopeInfo = builder.currentScopeInfo
+        ret.expr match {
+          case Some(returnValue) => builder.ret(transformExpression(returnValue))
+          case None => builder.ret()
+        }
+        builder.allowDeadBlockHere("deadCodeAfterReturn", scopeInfo)
+        return rreq.ifNeeded(builder.constant(DfUnit.Concrete))
+
       case e => transformationNotSupported(e)
     })
   }

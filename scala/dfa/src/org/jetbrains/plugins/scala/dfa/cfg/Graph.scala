@@ -7,6 +7,7 @@ import scala.collection.immutable.ArraySeq
 final class Graph[SourceInfo] private[cfg](val nodes: ArraySeq[Node],
                                            val blocks: ArraySeq[Block],
                                            val arguments: ArraySeq[Argument],
+                                           val returnValues: Map[End, Value],
                                            val valueForSource: Map[SourceInfo, Value]) {
 
   assert(nodes.nonEmpty)

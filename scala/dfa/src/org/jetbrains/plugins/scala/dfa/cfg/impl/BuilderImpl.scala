@@ -26,6 +26,7 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   private val nodesBuilder = BuilderWithSize.newBuilder[NodeImpl](ArraySeq)
   private val blocksBuilder = BuilderWithSize.newBuilder[Block](ArraySeq)
   private val blockOutgoings = mutable.Map.empty[Block, mutable.Builder[Block, ArraySeq[Block]]]
+  private val returnValuesBuilder = Map.newBuilder[End, Value]
 
 
   // Normally there should be scope whenever there is a block and vice versa.
@@ -162,6 +163,13 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   override def readProperty(base: Value, property: Property): Value = ???
   override def writeProperty(base: Value, property: Property, value: Value): Unit = ???
 
+  override def ret(): Unit =
+    addNode(new EndImpl)
+
+  override def ret(value: Value): Unit =
+    returnValuesBuilder += addNode(new EndImpl) -> value
+
+
   /***** Forward jumps ****/
   private val unlinkedJumps = mutable.Set.empty[UnlinkedJump]
   private def addForwardJump(jump: JumpingImpl, nameAfterBlock: Option[String] = None): UnlinkedJump = {
@@ -245,8 +253,9 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
     val nodes = nodesBuilder.result()
     val blocks = blocksBuilder.result()
     val arguments = argumentsBuilder.result()
+    val returnValues = returnValuesBuilder.result()
     val valueForSource = sourceMappingBuilder.result()
-    val graph = new Graph[SourceInfo](nodes, blocks, arguments, valueForSource)
+    val graph = new Graph[SourceInfo](nodes, blocks, arguments, returnValues, valueForSource)
     blocks.foreach(_._graph = graph)
 
     // build outgoings for blocks

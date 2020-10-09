@@ -21,6 +21,9 @@ trait Builder[SourceInfo] {
   def readProperty(base: Value, property: Property): Value
   def writeProperty(base: Value, property: Property, value: Value): Unit
 
+  def ret(): Unit
+  def ret(value: Value): Unit
+
   def jumpToFuture(): UnlinkedJump
   def jumpToFutureIfNot(cond: Value, afterBlockName: String): UnlinkedJump
   def jumpHere(blockName: String, label: Seq[UnlinkedJump]): Unit

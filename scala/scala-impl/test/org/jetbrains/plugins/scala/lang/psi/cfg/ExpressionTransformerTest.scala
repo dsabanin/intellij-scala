@@ -251,6 +251,25 @@ class ExpressionTransformerTest extends TransformerTestBase {
 //  }
 
 
+  def test_return(): Unit = check(
+    """
+      |return
+      |return true
+      |return 3
+      |val a = return
+      |""".stripMargin,
+    """
+      |end
+      |%0 <- DfTrue
+      |end
+      |%1 <- DfInt(3)
+      |end
+      |end
+      |%2 <- DfUnit.Top
+      |end
+      |""".stripMargin
+  )
+
   /*
   todo: implement this
   def test_property_access(): Unit = {
