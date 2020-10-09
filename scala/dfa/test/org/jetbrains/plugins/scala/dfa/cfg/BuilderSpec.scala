@@ -118,4 +118,19 @@ class BuilderSpec extends AnyFunSuite with Matchers with BuilderMatchers {
     an [AssertionError] should be thrownBy
       builder.jumpHere("fail", jump)
   }
+
+  test("call without this") {
+    val builder = newBuilder
+
+    val arg = builder.constant(DfInt(3))
+    builder.call(CallInfo("test", isStatic = true), thisValue = None, arguments = Seq(arg))
+
+    builder.finish() should disassembleTo(
+      """
+        |  %0 <- DfInt(3)
+        |  %1 <- call test(%0)
+        |  end
+        |""".stripMargin
+    )
+  }
 }

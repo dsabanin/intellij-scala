@@ -1,6 +1,8 @@
 package org.jetbrains.plugins.scala.dfa
 package cfg
 
+import scala.collection.immutable.ArraySeq
+
 sealed trait Node {
   type Block = cfg.Block
 
@@ -38,7 +40,7 @@ trait Argument extends Value {
 }
 
 trait PhiValue extends Value {
-
+  def incoming: Map[Value, Seq[Block]]
 }
 
 trait Jump extends Jumping
@@ -47,6 +49,8 @@ trait JumpIfNot extends Jumping {
   def condition: Value
 }
 
-trait JumpTarget extends Value {
-
+trait Call extends Value {
+  def callInfo: CallInfo
+  def thisValue: Option[Value]
+  def arguments: ArraySeq[Value]
 }

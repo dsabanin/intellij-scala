@@ -163,6 +163,9 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   override def readProperty(base: Value, property: Property): Value = ???
   override def writeProperty(base: Value, property: Property, value: Value): Unit = ???
 
+  override def call(callInfo: CallInfo, thisValue: Option[Value], arguments: Seq[Value]): Value =
+    addNode(new CallImpl(callInfo, thisValue, arguments.to(ArraySeq)))
+
   override def ret(): Unit =
     addNode(new EndImpl)
 
