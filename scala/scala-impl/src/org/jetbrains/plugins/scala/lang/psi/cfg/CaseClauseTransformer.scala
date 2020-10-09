@@ -13,13 +13,14 @@ private trait CaseClauseTransformer { this: Transformer =>
     val endJumps = Seq.newBuilder[builder.UnlinkedJump]
     val resultVariable = rreq.ifNeeded(builder.newVariable("matchResult", new AnyRef))
 
+    val scopeInfoAtCaseStart = builder.currentScopeInfo
     val lastCaseClauseIdx = caseClauses.size - 1
     val failJumps = caseClauses.iterator.zipWithIndex.foldLeft(Seq.empty[builder.UnlinkedJump]) {
       case (prevFailJumps, (ScCaseClause(Some(pattern), guard, expr), idx)) =>
         val isLast = idx == lastCaseClauseIdx
 
         val blockName = "case" + idx
-        if (prevFailJumps.isEmpty) builder.allowDeadBlockHere(blockName)
+        if (prevFailJumps.isEmpty) builder.allowDeadBlockHere(blockName, scopeInfoAtCaseStart)
         else builder.jumpHere(blockName, prevFailJumps)
 
         var failJumps = List.empty[builder.UnlinkedJump]

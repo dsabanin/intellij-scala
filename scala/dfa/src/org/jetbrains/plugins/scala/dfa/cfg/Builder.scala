@@ -4,9 +4,13 @@ package cfg
 import org.jetbrains.plugins.scala.dfa.cfg.Builder.{Property, Variable}
 
 trait Builder[SourceInfo] {
+  trait ScopeInfoHolder {
+    def scopeInfo: ScopeInfo
+  }
   type Value
-  type UnlinkedJump
+  type UnlinkedJump <: ScopeInfoHolder
   type LoopLabel
+  type ScopeInfo
 
   def addArgument(name: String, anchor: AnyRef): (Variable, Value)
   def constant(const: DfAny): Value
@@ -27,7 +31,8 @@ trait Builder[SourceInfo] {
   def loopJumpHere(): LoopLabel
   def jumpBack(loop: LoopLabel): Unit
 
-  def allowDeadBlockHere(name: String): Boolean
+  def allowDeadBlockHere(name: String, incomingScope: ScopeInfo): Unit
+  def currentScopeInfo: ScopeInfo
 
   def addSourceInfo(value: Value, sourceInfo: SourceInfo): Unit
   def freshVariable(prefix: String = "fresh"): Variable

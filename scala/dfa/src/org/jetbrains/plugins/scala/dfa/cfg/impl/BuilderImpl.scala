@@ -12,13 +12,15 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   override type Value = cfg.Value
   override type UnlinkedJump = UnlinkedJumpImpl
   override type LoopLabel = LoopLabelImpl
+  override type ScopeInfo = ScopeVariablesMap
 
   private type NodeImpl = impl.NodeImpl with Node
   private type JumpingImpl = impl.JumpingImpl with Jumping
   private type ArgumentImpl = impl.ArgumentImpl
   private type Block = impl.BlockImpl
 
-  private class Scope(val block: Block, var variables: Map[Variable, Value])
+  type ScopeVariablesMap = Map[Variable, Value]
+  private class Scope(val block: Block, var variables: ScopeVariablesMap)
 
   private val sourceMappingBuilder = Map.newBuilder[SourceInfo, Value]
   private val nodesBuilder = BuilderWithSize.newBuilder[NodeImpl](ArraySeq)
@@ -28,9 +30,11 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
 
   // Normally there should be scope whenever there is a block and vice versa.
   // But there is this weird state where we insert phi nodes to build the scope.
-  // Tn that state there is a block but no a scope.
+  // In that state there is a block but no a scope.
   private var curMaybeBlock = Option.empty[Block]
   private var curMaybeScope = Option.empty[Scope]
+
+  private var scheduledDeadCode = Option.empty[(String, ScopeVariablesMap)]
 
   locally {
     startBlock("<main>", Seq.empty)
@@ -43,6 +47,7 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   private def startBlock(name: String, incomingScopes: Seq[Scope]): Unit = {
     assert(curMaybeBlock.isEmpty)
     assert(curMaybeScope.isEmpty)
+    scheduledDeadCode = None
     val block = new Block(
       name,
       index = blocksBuilder.elementsAdded,
@@ -98,6 +103,15 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   private def closeBlockIfExists(): Option[Scope] =
     curMaybeBlock.map { _ => closeBlock() }
 
+  private def startScheduledDeadCodeBlock(): Unit = {
+    for ((blockName, variables) <- scheduledDeadCode) {
+      startBlock(blockName, Seq.empty)
+      // at this point variables is empty and we just patch them with those from the last block
+      currentScope.variables = variables
+      scheduledDeadCode = None
+    }
+  }
+
   private var nextValueId = 0
   private def newValueId(): Int = {
     val next = nextValueId
@@ -106,6 +120,8 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   }
 
   private def addNode(node: NodeImpl): node.type = {
+    startScheduledDeadCodeBlock()
+
     node._index = nodesBuilder.elementsAdded
     node._block = currentBlock
 
@@ -138,8 +154,10 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
 
   override def readVariable(variable: Variable): Value =
     currentScope.variables(variable)
-  override def writeVariable(variable: Variable, value: Value): Unit =
+  override def writeVariable(variable: Variable, value: Value): Unit = {
+    startScheduledDeadCodeBlock()
     currentScope.variables += variable -> value
+  }
 
   override def readProperty(base: Value, property: Property): Value = ???
   override def writeProperty(base: Value, property: Property, value: Value): Unit = ???
@@ -172,7 +190,9 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   }
 
   class UnlinkedJumpImpl(private[BuilderImpl] val jumping: JumpingImpl,
-                         private[BuilderImpl] val blockInfo: Scope) {
+                         private[BuilderImpl] val blockInfo: Scope) extends ScopeInfoHolder {
+    override def scopeInfo: ScopeVariablesMap = blockInfo.variables
+
     private[BuilderImpl] def finish(targetIndex: Int): Unit = {
       assert(unlinkedJumps contains this)
       unlinkedJumps -= this
@@ -189,12 +209,14 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   }
 
   /***** Additional stuff *****/
-  override def allowDeadBlockHere(name: String): Boolean = {
-    val needDeadBlock = curMaybeBlock.isEmpty
-    if (needDeadBlock) {
-      startBlock(name, Seq.empty)
+  override def allowDeadBlockHere(name: String, incomingScope: ScopeInfo): Unit =
+    if (curMaybeBlock.isEmpty) {
+      scheduledDeadCode = Some(name -> incomingScope)
     }
-    needDeadBlock
+
+  override def currentScopeInfo: ScopeVariablesMap = {
+    assert(scheduledDeadCode.isDefined != curMaybeScope.isDefined)
+    scheduledDeadCode.fold(currentScope.variables)(_._2)
   }
 
   override def addSourceInfo(value: Value, sourceInfo: SourceInfo): Unit =
