@@ -9,6 +9,7 @@ private final class Transformer(val builder: Builder)
   with ExpressionTransformer
   with StatementTransformation
   with CallTransformation
+  with CaseClauseTransformer
 {
   def transformAny(element: ScalaPsiElement): Unit = element match {
     case stmt: ScBlockStatement => transformStatement(stmt, ResultReq.NotNeeded)

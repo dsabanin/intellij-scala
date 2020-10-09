@@ -31,10 +31,10 @@ private trait StatementTransformation { this: Transformer =>
     val maybeResult = stmt match {
       case expression: ScExpression => transformExpression(expression, rreq)
       case function: ScFunction =>
-        transformationNotSupported
+        transformationNotSupported(function)
         None
       case stmt: ScImportStmt =>
-        transformationNotSupported
+        transformationNotSupported(stmt)
         None
       case variable: ScValueOrVariable =>
         transformValueOrVariable(variable)

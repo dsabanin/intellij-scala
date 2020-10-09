@@ -9,17 +9,26 @@ import scala.annotation.tailrec
 
 private trait PatternTransformer { this: Transformer =>
   final def transformPatternList(patternList: ScPatternList, expr: Option[ScExpression]): Unit = {
-    val value = expr.fold(builder.constant(DfNothing))(expr => transformExpression(expr))
+    val subject = expr.fold(builder.constant(DfNothing))(expr => transformExpression(expr))
 
     for (pattern <- patternList.patterns) {
-      transformPattern(pattern, value)
+      transformPattern(pattern, subject)
     }
   }
 
+  final def transformPattern(pattern: ScPattern, subject: builder.Value): Unit =
+    transformPatternWithCustomFail(pattern, subject, jumpOnFail = false).foreach { successJump =>
+      transformationNotSupported(s"Cannot transform fail jump for $pattern")
+    }
+
   @tailrec
-  final def transformPattern(pattern: ScPattern, value: builder.Value): Unit = pattern match {
-    case ScParenthesisedPattern(pattern) => transformPattern(pattern, value)
-    case pattern: ScReferencePattern => builder.writeVariable(variable(pattern), value)
-    case _ => transformationNotSupported
+  final def transformPatternWithCustomFail(pattern: ScPattern, subject: builder.Value, jumpOnFail: Boolean): Option[builder.UnlinkedJump] = pattern match {
+    case ScParenthesisedPattern(pattern) => transformPatternWithCustomFail(pattern, subject, jumpOnFail)
+    case pattern: ScReferencePattern =>
+      builder.writeVariable(variable(pattern), subject)
+      None
+    case _ => transformationNotSupported(pattern)
   }
+
+  final def buildThrowMatchError(): Unit = transformationNotSupported("Cannot create match error yet")
 }

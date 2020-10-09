@@ -95,7 +95,7 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
     scope
   }
 
-  private def closeBlockIfNeeded(): Option[Scope] =
+  private def closeBlockIfExists(): Option[Scope] =
     curMaybeBlock.map { _ => closeBlock() }
 
   private var nextValueId = 0
@@ -162,7 +162,8 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
     addForwardJump(new JumpIfNotImpl(cond), Some(afterBlockName))
 
   override def jumpHere(blockName: String, labels: Seq[UnlinkedJump]): Unit = {
-    val prevBlockInfo = closeBlockIfNeeded()
+    assert(labels.nonEmpty)
+    val prevBlockInfo = closeBlockIfExists()
     val targetIndex = nodesBuilder.elementsAdded
 
     labels.foreach(_.finish(targetIndex))
@@ -188,6 +189,14 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   }
 
   /***** Additional stuff *****/
+  override def allowDeadBlockHere(name: String): Boolean = {
+    val needDeadBlock = curMaybeBlock.isEmpty
+    if (needDeadBlock) {
+      startBlock(name, Seq.empty)
+    }
+    needDeadBlock
+  }
+
   override def addSourceInfo(value: Value, sourceInfo: SourceInfo): Unit =
     sourceMappingBuilder += sourceInfo -> value
 

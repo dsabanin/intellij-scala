@@ -27,6 +27,8 @@ trait Builder[SourceInfo] {
   def loopJumpHere(): LoopLabel
   def jumpBack(loop: LoopLabel): Unit
 
+  def allowDeadBlockHere(name: String): Boolean
+
   def addSourceInfo(value: Value, sourceInfo: SourceInfo): Unit
   def freshVariable(prefix: String = "fresh"): Variable
   def newVariable(name: String, anchor: AnyRef): Variable

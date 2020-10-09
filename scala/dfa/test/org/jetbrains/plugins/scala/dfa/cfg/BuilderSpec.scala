@@ -107,4 +107,15 @@ class BuilderSpec extends AnyFunSuite with Matchers with BuilderMatchers {
     an [AssertionError] should be thrownBy
       builder.addArgument("blub", new AnyRef)
   }
+
+  test("already used labels are rejected") {
+    val builder = newBuilder
+
+    val jump = builder.jumpToFuture()
+
+    builder.jumpHere("test", jump)
+
+    an [AssertionError] should be thrownBy
+      builder.jumpHere("fail", jump)
+  }
 }

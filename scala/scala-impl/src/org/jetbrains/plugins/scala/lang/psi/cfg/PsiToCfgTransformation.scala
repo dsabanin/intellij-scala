@@ -5,12 +5,12 @@ import org.jetbrains.plugins.scala.dfa._
 import org.jetbrains.plugins.scala.lang.psi.api.statements.ScFunctionDefinition
 import org.jetbrains.plugins.scala.lang.psi.api.{ScalaElementVisitor, ScalaFile, ScalaPsiElement}
 
-import scala.util.control.Exception.catching
-
 object PsiToCfgTransformation {
-  private val unsupportedTransformationCatch = catching(classOf[UnsupportedTransformationException])
+  final def transform(element: PsiElement): Option[PsiGraph] =
+    try Some(transformUnsafe(element))
+    catch { case _: UnsupportedTransformationException => None }
 
-  final def transform(element: PsiElement): Option[PsiGraph] = unsupportedTransformationCatch.opt {
+  private[cfg] def transformUnsafe(element: PsiElement): PsiGraph = {
     implicit val builder: Builder = cfg.Builder.newBuilder()
     val transformer = new Transformer(builder)
 
@@ -32,8 +32,8 @@ object PsiToCfgTransformation {
       case element: ScalaPsiElement =>
         transformer.transformAny(element)
 
-      case _ =>
-        transformationNotSupported
+      case element =>
+        transformationNotSupported(element)
     }
 
     builder.finish()
