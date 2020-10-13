@@ -7,6 +7,9 @@ abstract class NodeInstance extends Cloneable {
   def node: cfg.Node
   def process(state: State, controller: Controller): Unit
   def reset(): Unit = ()
+
+  @inline
+  final protected def nextNodeIndex: Int = node.index + 1
 }
 
 
