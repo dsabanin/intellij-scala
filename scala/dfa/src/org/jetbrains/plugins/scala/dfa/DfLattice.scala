@@ -9,9 +9,8 @@ import scala.util.hashing.MurmurHash3
 
 
 /*************************** Any (Top) **************************/
-sealed trait DfAny extends Product with Serializable {
-  def toBoolLat: BoolLat = BoolLat.Bottom
-}
+sealed trait DfAny extends Product with Serializable
+
 object DfAny {
   lazy val Top: DfAny = join[DfAny](DfAnyVal.Top, DfAnyRef.Top, DfNull.Top)
   sealed trait Concrete extends DfAny
@@ -120,7 +119,6 @@ object DfAnyVal {
 trait DfBool extends DfAnyVal
 object DfBool {
   case object Top extends DfBool {
-    override def toBoolLat: BoolLat = BoolLat.Top
     override def toString: String = "DfBool.Top"
   }
   sealed trait Concrete extends DfBool with DfAnyVal.Concrete
@@ -132,11 +130,9 @@ object DfBool {
   }
 
   case object True extends Concrete {
-    override def toBoolLat: BoolLat = BoolLat.True
     override def toString: String = "DfTrue"
   }
   case object False extends Concrete {
-    override def toBoolLat: BoolLat = BoolLat.False
     override def toString: String = "DfFalse"
   }
 

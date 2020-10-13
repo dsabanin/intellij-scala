@@ -29,6 +29,13 @@ object BoolLat {
   def apply(boolean: Option[Boolean]): BoolLat =
     boolean.fold(Bottom: BoolLat)(BoolLat(_))
 
+  def apply(dfAny: DfAny): BoolLat = dfAny.narrowed[DfBool] match {
+    case DfBool.Top => BoolLat.Top
+    case DfBool.True => BoolLat.True
+    case DfBool.False => BoolLat.False
+    case DfBool.Bottom => BoolLat.Bottom
+  }
+
   sealed trait Concrete extends BoolSemiLat
 
   object Concrete {
@@ -92,10 +99,18 @@ object BoolSemiLat {
   val True: BoolLat.True.type = BoolLat.True
   val False: BoolLat.False.type = BoolLat.False
 
+  val Concrete: BoolLat.Concrete.type = BoolLat.Concrete
+
   def apply(boolean: Boolean): BoolSemiLat =
     if (boolean) True else False
 
-  val Concrete: BoolLat.Concrete.type = BoolLat.Concrete
+  def apply(boolLat: BoolLat): Option[BoolSemiLat] = boolLat match {
+    case BoolLat.Bottom => None
+    case semi: BoolSemiLat => Some(semi)
+  }
+
+  def apply(dfAny: DfAny): Option[BoolLat] =
+    BoolSemiLat(dfAny.toBoolLat)
 
   implicit val joinSemiLattice: JoinSemiLattice[BoolSemiLat] with InvertibleLattice[BoolSemiLat] =
     new FlatJoinSemiLattice[BoolSemiLat](Top) with InvertibleLattice[BoolSemiLat] {
