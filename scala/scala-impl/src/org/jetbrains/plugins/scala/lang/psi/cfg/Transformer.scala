@@ -1,16 +1,21 @@
 package org.jetbrains.plugins.scala.lang.psi.cfg
 
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.jetbrains.plugins.scala.lang.psi.api.ScalaPsiElement
 import org.jetbrains.plugins.scala.lang.psi.api.expr.ScBlockStatement
+import org.jetbrains.plugins.scala.project.ProjectContext
 
-private final class Transformer(val builder: Builder, val thisVariable: Option[Builder.Variable])
+private final class Transformer(val builder: Builder, val thisVariable: Option[Builder.Variable], val project: Project)
   extends PatternTransformer
   with ExpressionTransformer
   with StatementTransformation
   with CallTransformation
   with CaseClauseTransformer
+  with TupleTransformation
 {
+  private[cfg] implicit val projectContext: ProjectContext = project
+
   def transformAny(element: ScalaPsiElement): Unit = element match {
     case stmt: ScBlockStatement => transformStatement(stmt, ResultReq.NotNeeded)
     case _ => // do nothing

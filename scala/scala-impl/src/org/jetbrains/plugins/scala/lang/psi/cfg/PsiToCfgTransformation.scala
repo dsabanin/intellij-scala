@@ -15,13 +15,14 @@ object PsiToCfgTransformation {
 
     element match {
       case file: ScalaFile if file.isScriptFile || file.isWorksheetFile =>
-        val transformer = new Transformer(builder, thisVariable = None)
+        val transformer = new Transformer(builder, thisVariable = None, file.getProject)
         file.acceptChildren(new ScalaElementVisitor {
           override def visitScalaElement(element: ScalaPsiElement): Unit =
             transformer.transformAny(element)
         })
       case fun: ScFunctionDefinition =>
-        val transformer = new Transformer(builder, thisVariable = Some(builder.addArgument("this", new AnyRef)._1))
+        val thisVariable = builder.addArgument("this", new AnyRef)._1
+        val transformer = new Transformer(builder, Some(thisVariable), fun.getProject)
         for (param <- fun.parameters) {
           builder.addArgument(param.name, param)
         }
@@ -31,7 +32,7 @@ object PsiToCfgTransformation {
         }
 
       case element: ScalaPsiElement =>
-        val transformer = new Transformer(builder, thisVariable = None)
+        val transformer = new Transformer(builder, thisVariable = None, element.getProject)
         transformer.transformAny(element)
 
       case element =>
