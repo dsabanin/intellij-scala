@@ -10,6 +10,7 @@ package object impl {
     case jump: cfg.JumpIfNot => new JumpIfNotInstance(jump)
     case end: cfg.End => new EndInstance(end)
 
+    case call: cfg.Call => new CallInstance(call)
     case phi: cfg.PhiValue => new PhiValueInstance(phi)
 
     case _ => ???
