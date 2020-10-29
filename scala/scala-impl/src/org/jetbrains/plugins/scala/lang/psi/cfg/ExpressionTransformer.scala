@@ -32,6 +32,7 @@ private trait ExpressionTransformer { this: Transformer =>
       // ***************** Reference **************** //
       case reference: ScReferenceExpression => transformReference(reference)
       case _: ScThisReference => return buildThisValueOrNothing(rreq)
+      case ScTuple(exprs) => transformTupleItems(exprs)
 
       // ******************* Block ****************** //
       case ScParenthesisedExpr(inner) => return transformExpression(inner, rreq)
@@ -85,8 +86,8 @@ private trait ExpressionTransformer { this: Transformer =>
         builder.readVariable(variable(result.parentElement.get))
 
       case Some(ResolvesToFunction(func)) =>
-        //InvocationInfo(this.qualifier, Some(func), Seq.empty)
-        //  .build(rreq)
+        InvocationInfo(reference.qualifier, Some(func), Seq.empty)
+          .transform()
         transformationNotSupported(reference)
 
       case Some(result) =>
