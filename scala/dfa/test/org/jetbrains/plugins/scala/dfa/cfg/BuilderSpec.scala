@@ -123,7 +123,7 @@ class BuilderSpec extends AnyFunSuite with Matchers with BuilderMatchers {
     val builder = newBuilder
 
     val arg = builder.constant(DfInt(3))
-    builder.call(CallInfo("test", isStatic = true), thisValue = None, arguments = Seq(arg))
+    builder.call(CallInfo("test", isStatic = true), thisValue = None, arguments = Seq(Seq(arg)))
 
     builder.finish() should disassembleTo(
       """

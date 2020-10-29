@@ -52,5 +52,5 @@ trait JumpIfNot extends Jumping {
 trait Call extends Value {
   def callInfo: CallInfo
   def thisValue: Option[Value]
-  def arguments: ArraySeq[Value]
+  def arguments: ArraySeq[ArraySeq[Value]]
 }
