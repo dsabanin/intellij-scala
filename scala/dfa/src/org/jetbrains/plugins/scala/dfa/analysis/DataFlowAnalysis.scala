@@ -54,9 +54,10 @@ final class DataFlowAnalysis[Info](val graph: cfg.Graph[Info]) {
     val item = workQueue.dequeue()
     item.enqueued = false
 
+    val blockIdx = item.node.block.index
     val instance = item.instance
     for (state <- item.extractStates()) {
-      assert(state.isActive(instance))
+      state.blockActive(blockIdx) = true
       instance.process(state, controller)
     }
   }
