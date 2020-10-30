@@ -5,7 +5,6 @@ import org.jetbrains.plugins.scala.dfa.cfg.CallInfo
 import org.jetbrains.plugins.scala.extensions._
 import org.jetbrains.plugins.scala.lang.psi.api.expr._
 import org.jetbrains.plugins.scala.lang.psi.api.statements.params.ScParameter
-import org.jetbrains.plugins.scala.lang.psi.api.toplevel.ScNamedElement
 import org.jetbrains.plugins.scala.lang.psi.types.nonvalue.Parameter
 
 import scala.annotation.nowarn
@@ -13,21 +12,21 @@ import scala.annotation.nowarn
 private trait InvocationTransformation { this: Transformer =>
   /*
     TODO: We have the following cases when we encounter a method invocation
-    - [ ] calls to functions
-    - [ ] calls to methods (=> need thisref)
-    - [ ] calls to function objects
-    - [ ] calls to apply
-    - [ ] calls to update
-    - [ ] calls with assignment (i.e. +=, -=, ::=)
+    - [x] calls to functions
+    - [x] calls to methods (=> need thisref)
+    - [x] calls to function objects
+    - [x] calls to apply
+    - [x] calls to update
+    - [~] calls with assignment (i.e. +=, -=, ::=)
     - [ ] property updates (a.prop = 33 -> a.prop_=(33))
-    - [ ] calls that have changed precedence (::, everything with : as last char)
+    - [x] calls that have changed precedence (::, everything with : as last char)
     - [ ] imported member methods
     - [ ] with or without implicits
-    - [ ] with or without generics
-    - [ ] multiple parameter clauses
-    - [ ] auto tupeling
-    - [ ] default parameter
-    - [ ] named arguments (potentially reordered)
+    - [x] with or without generics
+    - [x] multiple parameter clauses
+    - [x] auto tupeling
+    - [x] default parameter
+    - [x] named arguments (potentially reordered)
     - [ ] varargs
     - [ ] dynamics
    */

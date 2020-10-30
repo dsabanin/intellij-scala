@@ -33,8 +33,6 @@ class GenericInvocationTransformerTest extends TransformerTestBase {
     )
   }
 
-  /*
-  todo: implement auto tupeling
   def test_autotupeling(): Unit = {
     check(
       """
@@ -43,12 +41,15 @@ class GenericInvocationTransformerTest extends TransformerTestBase {
         |test(1, true)
       """.stripMargin,
       """
-        |%0 <- call (1, true) tuple
-        |call (%0) test
+        |%0 <- DfInt(1)
+        |%1 <- DfTrue
+        |%2 <- call Tuple2
+        |%3 <- call %2.apply(%0, %1)
+        |%4 <- call test(%3)
+        |end
       """.stripMargin
     )
   }
-  */
 
   /*
     todo: implement this
