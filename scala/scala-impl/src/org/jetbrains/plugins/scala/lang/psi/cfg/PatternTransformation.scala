@@ -6,7 +6,7 @@ import org.jetbrains.plugins.scala.lang.psi.api.expr.ScExpression
 
 import scala.annotation.tailrec
 
-private trait PatternTransformer { this: Transformer =>
+private trait PatternTransformation { this: Transformer =>
   final def transformPatternList(patternList: ScPatternList, expr: Option[ScExpression]): Unit = {
     for (pattern <- patternList.patterns) {
       // yes, in a pattern list, every pattern duplicates the expression

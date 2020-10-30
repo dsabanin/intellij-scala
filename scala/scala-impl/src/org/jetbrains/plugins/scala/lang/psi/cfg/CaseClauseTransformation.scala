@@ -3,7 +3,7 @@ package org.jetbrains.plugins.scala.lang.psi.cfg
 import org.jetbrains.plugins.scala.dfa.{DfBool, DfUnit}
 import org.jetbrains.plugins.scala.lang.psi.api.base.patterns.{ScCaseClause, ScCaseClauses}
 
-private trait CaseClauseTransformer { this: Transformer =>
+private trait CaseClauseTransformation { this: Transformer =>
   final def transformCaseClauses(caseClauses: ScCaseClauses, subject: builder.Value, rreq: ResultReq): rreq.Result[builder.Value] =
     transformCaseClauses(caseClauses.caseClauses, subject, rreq)
 

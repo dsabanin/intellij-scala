@@ -9,7 +9,7 @@ import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScFun, ScParameterOw
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScObject
 import org.jetbrains.plugins.scala.lang.resolve.ScalaResolveResult
 
-private trait ExpressionTransformer { this: Transformer =>
+private trait ExpressionTransformation { this: Transformer =>
   final def transformExpression(expr: ScExpression): builder.Value = transformExpression(expr, ResultReq.Needed).value
   final def transformExpressionOrDefault(expr: Option[ScExpression], default: DfAny): builder.Value =
     expr.fold(builder.constant(default))(transformExpression)

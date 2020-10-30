@@ -7,14 +7,14 @@ import org.jetbrains.plugins.scala.lang.psi.api.expr.{MethodInvocation, ScInfixE
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.ScNamedElement
 
 private trait InfixCallTransformation { this: Transformer =>
-  def transformInfixCall(infixCall: ScInfixExpr): builder.Value = {
+  final def transformInfixCall(infixCall: ScInfixExpr): builder.Value = {
     val invocInfo = invocationInfoFor(infixCall)
 
-    def cond = invocInfo.funcRef
+    def isSugaredAssignment: Boolean = invocInfo.funcRef
       .collect { case elem: PsiNamedElement => elem }
       .exists(_.name == infixCall.operation.getText.init)
 
-    if (infixCall.isAssignmentOperator && cond) {
+    if (infixCall.isAssignmentOperator && isSugaredAssignment) {
 
 
       infixCall.left match {

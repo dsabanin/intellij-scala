@@ -7,13 +7,13 @@ import org.jetbrains.plugins.scala.lang.psi.api.expr.ScBlockStatement
 import org.jetbrains.plugins.scala.project.ProjectContext
 
 private final class Transformer(val builder: Builder, val thisVariable: Option[Builder.Variable], val project: Project)
-  extends PatternTransformer
-  with ExpressionTransformer
+  extends PatternTransformation
+  with ExpressionTransformation
   with StatementTransformation
   with InvocationTransformation
   with MethodCallTransformation
   with InfixCallTransformation
-  with CaseClauseTransformer
+  with CaseClauseTransformation
   with TupleTransformation
 {
   private[cfg] implicit val projectContext: ProjectContext = project
