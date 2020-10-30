@@ -33,10 +33,10 @@ class ExpressionTransformerTest extends TransformerTestBase {
       """
         |%0 <- DfTrue
         |if not %0 jump .else[2]
-        |%1 <- "then"
+        |%1 <- DfString("then")
         |jump .endIf[3]
         |.else[2]:
-        |%2 <- "else"
+        |%2 <- DfString("else")
         |.endIf[3]:
         |end
       """.stripMargin
@@ -49,10 +49,10 @@ class ExpressionTransformerTest extends TransformerTestBase {
       """
         |%0 <- DfTrue
         |if not %0 jump .else[2]
-        |%1 <- "then"
+        |%1 <- DfString("then")
         |jump .endIf[3]
         |.else[2]:
-        |%2 <- "else"
+        |%2 <- DfString("else")
         |.endIf[3]:
         |phi %3 <- %1 | %2
         |end
@@ -70,7 +70,7 @@ class ExpressionTransformerTest extends TransformerTestBase {
       """
         |%0 <- DfTrue
         |if not %0 jump .endIf[2]
-        |%1 <- "then"
+        |%1 <- DfString("then")
         |.endIf[2]:
         |end
       """.stripMargin
@@ -83,7 +83,7 @@ class ExpressionTransformerTest extends TransformerTestBase {
       """
         |%0 <- DfTrue
         |if not %0 jump .else[2]
-        |%1 <- "then"
+        |%1 <- DfString("then")
         |jump .endIf[3]
         |.else[2]:
         |%2 <- DfUnit.Top
@@ -224,31 +224,33 @@ class ExpressionTransformerTest extends TransformerTestBase {
 //    )
 //  }
 
-//  def test_tuple(): Unit = {
-//    check(
-//      """
-//        |val a = (1, 2)
-//        |""".stripMargin,
-//      """
-//        |%0 <- Tuple2$
-//        |a = call [%0](1, 2) scala.Tuple2$.apply
-//        |end
-//        |""".stripMargin
-//    )
-//
-//    check(
-//      """val a = true
-//        |(1, a)
-//        |""".stripMargin,
-//      """
-//        |a = true
-//        |%0 <- a
-//        |%1 <- Tuple2$
-//        |call [%1](1, %0) scala.Tuple2$.apply
-//        |end
-//        |""".stripMargin
-//    )
-//  }
+  def test_tuple(): Unit = {
+    check(
+      """
+        |val a = (1, 2)
+        |""".stripMargin,
+      """
+        |%0 <- DfInt(1)
+        |%1 <- DfInt(2)
+        |%2 <- call Tuple2
+        |%3 <- call %2.apply(%0, %1)
+        |end
+        |""".stripMargin
+    )
+
+    check(
+      """val a = true
+        |(1, a)
+        |""".stripMargin,
+      """
+        |%0 <- DfTrue
+        |%1 <- DfInt(1)
+        |%2 <- call Tuple2
+        |%3 <- call %2.apply(%1, %0)
+        |end
+        |""".stripMargin
+    )
+  }
 
 
   def test_return(): Unit = check(

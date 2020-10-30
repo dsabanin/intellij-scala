@@ -74,7 +74,7 @@ object DfAnyRef {
 
 /*********************** Special AnyRefs ************************/
 class DfStringRef(val text: String) extends DfAnyRef.Concrete {
-  override def toString: String = "\"" + text + "\""
+  override def toString: String = "DfString(\"" + text + "\")"
 }
 
 
