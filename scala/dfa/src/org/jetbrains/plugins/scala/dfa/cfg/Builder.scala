@@ -22,6 +22,8 @@ trait Builder[SourceInfo] {
   def writeProperty(base: Value, property: Property, value: Value): Unit
 
   def call(callInfo: CallInfo, thisValue: Option[Value], arguments: Seq[Seq[Value]]): Value
+  
+  def instantiate(): Value
 
   def ret(): Unit
   def ret(value: Value): Unit

@@ -11,6 +11,7 @@ package object impl {
     case end: cfg.End => new EndInstance(end)
 
     case call: cfg.Call => new CallInstance(call)
+    case inst: cfg.Instantiate => new InstantiateInstance(inst)
     case phi: cfg.PhiValue => new PhiValueInstance(phi)
 
     case _ => ???

@@ -166,6 +166,9 @@ private[cfg] class BuilderImpl[SourceInfo] extends Builder[SourceInfo] {
   override def call(callInfo: CallInfo, thisValue: Option[Value], arguments: Seq[Seq[Value]]): Value =
     addNode(new CallImpl(callInfo, thisValue, arguments.map(_.to(ArraySeq)).to(ArraySeq)))
 
+  override def instantiate(): Value =
+    addNode(new InstantiateImpl)
+
   override def ret(): Unit =
     addNode(new EndImpl)
 

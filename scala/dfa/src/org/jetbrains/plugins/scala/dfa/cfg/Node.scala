@@ -54,3 +54,5 @@ trait Call extends Value {
   def thisValue: Option[Value]
   def arguments: ArraySeq[ArraySeq[Value]]
 }
+
+trait Instantiate extends Value
