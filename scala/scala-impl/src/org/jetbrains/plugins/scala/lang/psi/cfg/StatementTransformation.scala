@@ -3,6 +3,7 @@ package org.jetbrains.plugins.scala.lang.psi.cfg
 import org.jetbrains.plugins.scala.lang.psi.api.expr.{ScBlockStatement, ScExpression}
 import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScFunction, ScPatternDefinition, ScValueDeclaration, ScValueOrVariable, ScVariableDeclaration, ScVariableDefinition}
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.imports.ScImportStmt
+import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.{ScClass, ScTrait}
 
 import scala.annotation.tailrec
 
@@ -29,14 +30,13 @@ private trait StatementTransformation { this: Transformer =>
   final def transformStatement(stmt: ScBlockStatement, rreq: ResultReq): rreq.Result[builder.Value] = attachSourceInfoIfSome(stmt) {
     val maybeResult = stmt match {
       case expression: ScExpression => transformExpression(expression, rreq)
-      case function: ScFunction =>
-        transformationNotSupported(function)
-        None
       case stmt: ScImportStmt =>
         transformationNotSupported(stmt)
         None
       case variable: ScValueOrVariable =>
         transformValueOrVariable(variable)
+        None
+      case _: ScFunction | _: ScClass | _: ScTrait =>
         None
     }
     rreq.orIfNeeded(maybeResult, buildUnit())

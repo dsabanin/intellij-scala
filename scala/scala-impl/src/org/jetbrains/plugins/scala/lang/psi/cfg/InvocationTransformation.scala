@@ -10,7 +10,7 @@ import org.jetbrains.plugins.scala.lang.psi.types.nonvalue.Parameter
 
 import scala.annotation.nowarn
 
-private trait CallTransformation { this: Transformer =>
+private trait InvocationTransformation { this: Transformer =>
   /*
     TODO: We have the following cases when we encounter a method invocation
     - [ ] calls to functions

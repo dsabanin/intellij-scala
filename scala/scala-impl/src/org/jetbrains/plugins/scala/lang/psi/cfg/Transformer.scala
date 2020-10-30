@@ -10,7 +10,8 @@ private final class Transformer(val builder: Builder, val thisVariable: Option[B
   extends PatternTransformer
   with ExpressionTransformer
   with StatementTransformation
-  with CallTransformation
+  with InvocationTransformation
+  with MethodCallTransformation
   with CaseClauseTransformer
   with TupleTransformation
 {

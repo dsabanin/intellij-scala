@@ -2,9 +2,11 @@ package org.jetbrains.plugins.scala.lang.psi.cfg
 
 import com.intellij.psi.{PsiMethod, PsiNamedElement}
 import org.jetbrains.plugins.scala.dfa._
+import org.jetbrains.plugins.scala.extensions._
 import org.jetbrains.plugins.scala.lang.psi.api.base.literals._
 import org.jetbrains.plugins.scala.lang.psi.api.expr.{ScTypedExpression, _}
 import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScFun, ScParameterOwner}
+import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScObject
 import org.jetbrains.plugins.scala.lang.resolve.ScalaResolveResult
 
 private trait ExpressionTransformer { this: Transformer =>
@@ -29,12 +31,21 @@ private trait ExpressionTransformer { this: Transformer =>
       case ScSymbolLiteral(_) => transformationNotSupported(expr)
       case ScStringLiteral(str) => builder.constant(new DfStringRef(str))
 
-      // ***************** Reference **************** //
+      // ***************** Reference ***************** //
       case reference: ScReferenceExpression => transformReference(reference)
       case _: ScThisReference => return buildThisValueOrNothing(rreq)
-      case ScTuple(exprs) => transformTupleItems(exprs)
 
-      // ******************* Block ****************** //
+      // ***************** Call likes **************** //
+      case ScTuple(exprs) => transformTupleItems(exprs)
+      case call: ScMethodCall => transformMethodCall(call)
+      case ScAssignment(leftInvocation: ScMethodCall, _) =>
+        invocationInfoFor(leftInvocation)
+          .copy(thisExpr = Some(leftInvocation.getEffectiveInvokedExpr))
+          .transform()
+      case ScAssignment(_, _) =>
+        transformationNotSupported("assignment to something else then a method call")
+
+      // ******************* Block ******************* //
       case ScParenthesisedExpr(inner) => return transformExpression(inner, rreq)
       case typedExpr: ScTypedExpression => return transformExpression(typedExpr.expr, rreq)
       case block: ScBlock => return transformStatements(block.statements, rreq)
@@ -82,13 +93,16 @@ private trait ExpressionTransformer { this: Transformer =>
 
   final def transformReference(reference: ScReferenceExpression): builder.Value = attachSourceInfo(reference) {
     reference.bind() match {
-      case Some(result) if reference.refName != result.name && (result.name == "apply" || result.name == "update") =>
+      case Some(ResolvesToObject(obj)) =>
+        InvocationInfo(None, Some(obj), Seq.empty)
+          .transform()
+        
+      case Some(result) if reference.refName != result.name && !(result.name == "apply" || result.name == "update") =>
         builder.readVariable(variable(result.parentElement.get))
 
       case Some(ResolvesToFunction(func)) =>
         InvocationInfo(reference.qualifier, Some(func), Seq.empty)
           .transform()
-        transformationNotSupported(reference)
 
       case Some(result) =>
         builder.readVariable(variable(result.element))
@@ -115,6 +129,11 @@ private trait ExpressionTransformer { this: Transformer =>
       case ScalaResolveResult(javaFun: PsiMethod, _) => Some(javaFun)
       case _ => None
     }
+  }
+
+  object ResolvesToObject {
+    def unapply(result: ScalaResolveResult): Option[ScObject] =
+      result.getActualElement.asOptionOf[ScObject]
   }
 
   final def transformAndWriteIfNeeded(expr: Option[ScExpression], default: DfAny, resultVariable: Option[Builder.Variable], rreq: ResultReq): Unit = {
