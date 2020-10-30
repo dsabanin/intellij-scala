@@ -56,8 +56,11 @@ trait ScImportsHolder extends ScalaPsiElement {
     if (lastParent != null) {
       val prevImports = previousImports(lastParent)
 
-      //Resolve all references in previous import expressions in direct order to avoid SOE
-      prevImports.foreach(updateResolveCaches)
+      val nameHint = processor.getHint(NameHint.KEY)
+      if (nameHint == null) {
+        //Resolve all references in previous import expressions in direct order to avoid SOE
+        prevImports.foreach(updateResolveCaches)
+      }
 
       val shouldStop =
         prevImports.reverse
@@ -78,7 +81,7 @@ trait ScImportsHolder extends ScalaPsiElement {
     }
   }
 
-  private def updateResolveCaches(importStmt: ScImportStmt): Unit =
+  private def updateResolveCaches(importStmt: ScImportStmt): Unit = 
     for {
       expr <- importStmt.importExprs
       ref  <- expr.reference
