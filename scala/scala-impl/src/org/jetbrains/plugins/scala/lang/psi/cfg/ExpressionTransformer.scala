@@ -38,12 +38,16 @@ private trait ExpressionTransformer { this: Transformer =>
       // ***************** Call likes **************** //
       case ScTuple(exprs) => transformTupleItems(exprs)
       case call: ScMethodCall => transformMethodCall(call)
+      case infixExpr: ScInfixExpr => transformInfixCall(infixExpr)
       case ScAssignment(leftInvocation: ScMethodCall, _) =>
         invocationInfoFor(leftInvocation)
           .copy(thisExpr = Some(leftInvocation.getEffectiveInvokedExpr))
           .transform()
       case ScAssignment(_, _) =>
         transformationNotSupported("assignment to something else then a method call")
+        
+      // Catch all remaining method invocations
+      case invoc: MethodInvocation => invocationInfoFor(invoc).transform()
 
       // ******************* Block ******************* //
       case ScParenthesisedExpr(inner) => return transformExpression(inner, rreq)

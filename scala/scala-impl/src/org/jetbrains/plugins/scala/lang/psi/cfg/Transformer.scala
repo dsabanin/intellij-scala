@@ -12,6 +12,7 @@ private final class Transformer(val builder: Builder, val thisVariable: Option[B
   with StatementTransformation
   with InvocationTransformation
   with MethodCallTransformation
+  with InfixCallTransformation
   with CaseClauseTransformer
   with TupleTransformation
 {

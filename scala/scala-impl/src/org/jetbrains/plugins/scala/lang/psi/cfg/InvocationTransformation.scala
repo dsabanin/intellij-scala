@@ -1,6 +1,6 @@
 package org.jetbrains.plugins.scala.lang.psi.cfg
 
-import com.intellij.psi.PsiElement
+import com.intellij.psi.{PsiElement, PsiNameIdentifierOwner}
 import org.jetbrains.plugins.scala.dfa.cfg.CallInfo
 import org.jetbrains.plugins.scala.extensions._
 import org.jetbrains.plugins.scala.lang.psi.api.expr._
@@ -81,7 +81,7 @@ private trait InvocationTransformation { this: Transformer =>
 
     private def callInfo: CallInfo = {
       val name = funcRef match {
-        case Some(named: ScNamedElement) => named.name
+        case Some(named: PsiNameIdentifierOwner) => named.name
         case _ => "<unknown>"
       }
       CallInfo(name, isStatic = false)
