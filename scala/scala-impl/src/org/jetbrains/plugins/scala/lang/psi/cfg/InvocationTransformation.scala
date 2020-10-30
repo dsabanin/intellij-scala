@@ -52,9 +52,10 @@ private trait InvocationTransformation { this: Transformer =>
       param.index -> transformExpression(expr)
   }
 
-  case class InvocationInfo(thisExpr: Option[ScExpression],
-                            funcRef: Option[PsiElement],
-                            argParams: Seq[ArgParamClause]) {
+  @nowarn("msg=The outer reference in this type test cannot be checked at run time")
+  final case class InvocationInfo(thisExpr: Option[ScExpression],
+                                  funcRef: Option[PsiElement],
+                                  argParams: Seq[ArgParamClause]) {
     def transform(thisRef: => Option[builder.Value] = transformThisRef(),
                   args: => Seq[Seq[builder.Value]] = transformArgs()): builder.Value =
       builder.call(callInfo, thisRef, args)
@@ -94,8 +95,8 @@ private trait InvocationTransformation { this: Transformer =>
       paramRegs.map(_.sortBy(ArgumentSorting.paramPosition).map(_._2))
     }
   }
-
-  object ArgumentSorting {
+  
+  private object ArgumentSorting {
     def exprPosition(t: (ScExpression, Parameter)): (Int, Int) = {
       val (expr, param) = t
       // actually supplied arguments have to be evaluated before default parameters
@@ -106,7 +107,7 @@ private trait InvocationTransformation { this: Transformer =>
     def paramPosition(t: (Int, _)): Int = t._1
   }
 
-  def invocationInfoFor(invoc: MethodInvocation): InvocationInfo = {
+  final def invocationInfoFor(invoc: MethodInvocation): InvocationInfo = {
     val rr = invoc.target
     val isTupled = rr.exists(_.tuplingUsed)
     InvocationInfo(
@@ -114,10 +115,5 @@ private trait InvocationTransformation { this: Transformer =>
       rr.map(_.element),
       Seq(ArgParamClause(invoc.matchedParameters, isTupled))
     )
-  }
-
-  object withInvocationInfo {
-    def unapply(invoc: MethodInvocation): Option[InvocationInfo] =
-      Some(invocationInfoFor(invoc))
   }
 }

@@ -122,7 +122,7 @@ private trait ExpressionTransformer { this: Transformer =>
     case None => rreq.ifNeeded(buildAny())
   }
 
-  object ResolvesToFunction {
+  final object ResolvesToFunction {
     def unapply(result: ScalaResolveResult): Option[PsiNamedElement] = result match {
       case ScalaResolveResult(scalaFun: ScParameterOwner, _) => Some(scalaFun)
       case ScalaResolveResult(syntheticFun: ScFun, _) => Some(syntheticFun)
@@ -131,7 +131,7 @@ private trait ExpressionTransformer { this: Transformer =>
     }
   }
 
-  object ResolvesToObject {
+  final object ResolvesToObject {
     def unapply(result: ScalaResolveResult): Option[ScObject] =
       result.getActualElement.asOptionOf[ScObject]
   }

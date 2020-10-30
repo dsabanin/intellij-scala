@@ -4,7 +4,7 @@ sealed abstract class ResultReq(final val needed: Boolean) {
   type Result[T] >: Some[T] <: Option[T]
 
   def ifNeeded[T](f: => T): Result[T]
-  def orIfNeeded[T](opt: Option[T], defaultIfNeeded: => T): Result[T] = opt match {
+  final def orIfNeeded[T](opt: Option[T], defaultIfNeeded: => T): Result[T] = opt match {
     case some@Some(_) => some
     case None => ifNeeded(defaultIfNeeded)
   }
