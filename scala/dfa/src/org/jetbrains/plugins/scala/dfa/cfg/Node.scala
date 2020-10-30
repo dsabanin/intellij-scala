@@ -55,4 +55,6 @@ trait Call extends Value {
   def arguments: ArraySeq[ArraySeq[Value]]
 }
 
-trait Instantiate extends Value
+trait Instantiate extends Value {
+  def instantiationInfo: InstantiationInfo
+}

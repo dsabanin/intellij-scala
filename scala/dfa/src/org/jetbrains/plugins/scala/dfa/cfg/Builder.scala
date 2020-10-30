@@ -23,7 +23,7 @@ trait Builder[SourceInfo] {
 
   def call(callInfo: CallInfo, thisValue: Option[Value], arguments: Seq[Seq[Value]]): Value
   
-  def instantiate(): Value
+  def instantiate(instantiationInfo: InstantiationInfo): Value
 
   def ret(): Unit
   def ret(value: Value): Unit

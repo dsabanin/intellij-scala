@@ -2,6 +2,7 @@ package org.jetbrains.plugins.scala.lang.psi.cfg
 
 import com.intellij.psi.{PsiMethod, PsiNamedElement}
 import org.jetbrains.plugins.scala.dfa._
+import org.jetbrains.plugins.scala.dfa.cfg.InstantiationInfo
 import org.jetbrains.plugins.scala.extensions._
 import org.jetbrains.plugins.scala.lang.psi.api.base.literals._
 import org.jetbrains.plugins.scala.lang.psi.api.expr.{ScTypedExpression, _}
@@ -45,6 +46,7 @@ private trait ExpressionTransformation { this: Transformer =>
           .transform()
       case ScAssignment(_, _) =>
         transformationNotSupported("assignment to something else then a method call")
+      case newTemplateDefinition: ScNewTemplateDefinition => transformNewTemplateDefinition(newTemplateDefinition)
         
       // Catch all remaining method invocations
       case invoc: MethodInvocation => invocationInfoFor(invoc).transform()
@@ -95,7 +97,7 @@ private trait ExpressionTransformation { this: Transformer =>
     })
   }
 
-  final def transformReference(reference: ScReferenceExpression): builder.Value = attachSourceInfo(reference) {
+  private def transformReference(reference: ScReferenceExpression): builder.Value = attachSourceInfo(reference) {
     reference.bind() match {
       case Some(ResolvesToObject(obj)) =>
         InvocationInfo(None, Some(obj), Seq.empty)
@@ -115,6 +117,34 @@ private trait ExpressionTransformation { this: Transformer =>
         // we have to be able to handle the error here
         transformationNotSupported(reference)
     }
+  }
+  
+  private val typeTextWhiteGlobber = raw"\s+".r
+  private def transformNewTemplateDefinition(newTemplateDefinition: ScNewTemplateDefinition): builder.Value = {
+    val classType = newTemplateDefinition.`type`().getOrAny
+    val typeText = typeTextWhiteGlobber.replaceAllIn(classType.presentableText(newTemplateDefinition), " ")
+    val info = InstantiationInfo(typeText)
+    val obj = builder.instantiate(info)
+    
+    
+    val constrData = for {
+      constructorInvocation <- newTemplateDefinition.constructorInvocation
+      ref <- constructorInvocation.reference
+      resolveResult <- ref.bind()
+    } yield (constructorInvocation, resolveResult)
+
+    constrData.foreach {
+      case (constructorInvocation, ScalaResolveResult(target, _)) =>
+
+        val info = InvocationInfo(
+          None, Some(target),
+          constructorInvocation.matchedParametersByClauses.map(ArgParamClause(_, isTupled = false))
+        )
+          
+        val constrInfo = info.callInfo.copy(name = "constructor")
+        info.transform(thisRef = Some(obj), callInfo = constrInfo)
+    }
+    obj
   }
 
   final def buildAny(): builder.Value = builder.constant(DfAny.Top)

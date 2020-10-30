@@ -56,10 +56,11 @@ private trait InvocationTransformation { this: Transformer =>
                                   funcRef: Option[PsiElement],
                                   argParams: Seq[ArgParamClause]) {
     def transform(thisRef: => Option[builder.Value] = transformThisRef(),
-                  args: => Seq[Seq[builder.Value]] = transformArgs()): builder.Value =
+                  args: => Seq[Seq[builder.Value]] = transformArgs(),
+                  callInfo: CallInfo = callInfo): builder.Value =
       builder.call(callInfo, thisRef, args)
 
-    def transformRightAssoc(): builder.Value = {
+    def transformRightAssoc(callInfo: CallInfo = callInfo): builder.Value = {
       assert(this.argParams.nonEmpty)
       assert(!this.argParams.head.isTupled)
       // For 'a :: b'
@@ -78,7 +79,7 @@ private trait InvocationTransformation { this: Transformer =>
       builder.call(callInfo, thisRef, firstArgClauseRefs +: restArgClausesRefs)
     }
 
-    private def callInfo: CallInfo = {
+    def callInfo: CallInfo = {
       val name = funcRef match {
         case Some(named: PsiNameIdentifierOwner) => named.name
         case _ => "<unknown>"
