@@ -4,9 +4,11 @@ import com.intellij.psi.{PsiMethod, PsiNamedElement}
 import org.jetbrains.plugins.scala.dfa._
 import org.jetbrains.plugins.scala.dfa.cfg.InstantiationInfo
 import org.jetbrains.plugins.scala.extensions._
+import org.jetbrains.plugins.scala.lang.psi.api.base.ScReference
 import org.jetbrains.plugins.scala.lang.psi.api.base.literals._
 import org.jetbrains.plugins.scala.lang.psi.api.expr.{ScTypedExpression, _}
 import org.jetbrains.plugins.scala.lang.psi.api.statements.{ScFun, ScParameterOwner}
+import org.jetbrains.plugins.scala.lang.psi.api.toplevel.ScNamedElement
 import org.jetbrains.plugins.scala.lang.psi.api.toplevel.typedef.ScObject
 import org.jetbrains.plugins.scala.lang.resolve.ScalaResolveResult
 
@@ -44,12 +46,13 @@ private trait ExpressionTransformation { this: Transformer =>
         invocationInfoFor(leftInvocation)
           .copy(thisExpr = Some(leftInvocation.getEffectiveInvokedExpr))
           .transform()
-      case ScAssignment(_, _) =>
-        transformationNotSupported("assignment to something else then a method call")
       case newTemplateDefinition: ScNewTemplateDefinition => transformNewTemplateDefinition(newTemplateDefinition)
         
       // Catch all remaining method invocations
       case invoc: MethodInvocation => invocationInfoFor(invoc).transform()
+
+      // ***************** Assignment ***************** //
+      case ScAssignment(left, right) => transformAssignment(left, right)
 
       // ******************* Block ******************* //
       case ScParenthesisedExpr(inner) => return transformExpression(inner, rreq)
@@ -145,6 +148,16 @@ private trait ExpressionTransformation { this: Transformer =>
         info.transform(thisRef = Some(obj), callInfo = constrInfo)
     }
     obj
+  }
+
+  final def transformAssignment(left: ScExpression, right: Option[ScExpression]): builder.Value = {
+    left match {
+      case ref@ScReference.qualifier(qual) => transformationNotSupported(ref)
+      case ScReference(named: ScNamedElement) =>
+        val value = transformExpressionOrDefault(right, DfAny.Top)
+        builder.writeVariable(variable(named), value)
+        value
+    }
   }
 
   final def buildAny(): builder.Value = builder.constant(DfAny.Top)
