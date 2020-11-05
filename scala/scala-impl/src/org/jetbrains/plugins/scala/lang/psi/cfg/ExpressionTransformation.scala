@@ -52,7 +52,7 @@ private trait ExpressionTransformation { this: Transformer =>
       case invoc: MethodInvocation => invocationInfoFor(invoc).transform()
 
       // ***************** Assignment ***************** //
-      case ScAssignment(left, right) => transformAssignment(left, right)
+      case assignment: ScAssignment => transformAssignment(assignment)
 
       // ******************* Block ******************* //
       case ScParenthesisedExpr(inner) => return transformExpression(inner, rreq)
@@ -150,13 +150,20 @@ private trait ExpressionTransformation { this: Transformer =>
     obj
   }
 
-  final def transformAssignment(left: ScExpression, right: Option[ScExpression]): builder.Value = {
-    left match {
-      case ref@ScReference.qualifier(qual) => transformationNotSupported(ref)
-      case ScReference(named: ScNamedElement) =>
-        val value = transformExpressionOrDefault(right, DfAny.Top)
-        builder.writeVariable(variable(named), value)
-        value
+  final def transformAssignment(assignment: ScAssignment): builder.Value = {
+    assignment.resolveAssignment match {
+      case Some(_) =>
+        assignment.mirrorMethodCall.fold(buildAny())(transformMethodCall)
+      case None =>
+        val ScAssignment(left, right) = assignment
+
+        left match {
+          case ref@ScReference.qualifier(qual) => transformationNotSupported(ref)
+          case ScReference(named: ScNamedElement) =>
+            val value = transformExpressionOrDefault(right, DfAny.Top)
+            builder.writeVariable(variable(named), value)
+            value
+        }
     }
   }
 

@@ -15,8 +15,6 @@ class AssignmentTransformerTest extends TransformerTestBase {
       )
     }
 
-  /*
-  todo: implement this
   def test_assign_on_member_variable(): Unit = {
     check(
       """
@@ -30,9 +28,8 @@ class AssignmentTransformerTest extends TransformerTestBase {
         |end
       """.stripMargin
     )
-  }*/
+  }
 
-  /*
   def test_assign_on_property(): Unit = {
     check(
       """
@@ -43,13 +40,13 @@ class AssignmentTransformerTest extends TransformerTestBase {
         |Test.prop = 42
       """.stripMargin,
       """
-        |%0 <- callTest
+        |%0 <- call Test
         |%1 <- DfInt(42)
-        |call %0.prop_=(%1)
+        |%2 <- call %0.prop_=(%1)
         |end
       """.stripMargin
     )
-  }*/
+  }
 
   def test_assign_on_indexer(): Unit = {
     check(
